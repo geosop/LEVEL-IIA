@@ -6,10 +6,7 @@ date-released: 2026-06-27
 license: MIT
 authors:
   - family-names: Sopasakis
-    given-names: Alexandros
-  - family-names: Sopasakis
     given-names: George
-identifiers:
-  - type: doi
-    value: 10.5281/zenodo.PLACEHOLDER
-    description: "Zenodo archive (replace PLACEHOLDER before submission)"
+  - family-names: Sopasakis
+    given-names: Alexandros
+repository-code: "https://github.com/geosop/LEVEL-IIA"

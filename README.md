@@ -94,9 +94,7 @@ accessibility statement at the resulting run hash.
 
 ## Archival
 
-Before submission the repository is archived to Zenodo. The archived run hash and
-Zenodo DOI must match the data accessibility statement in the Perspective and the
-SI. The DOI placeholder is `10.5281/zenodo.PLACEHOLDER`.
+A Zenodo archive and DOI will be minted from the first public GitHub release. After release archiving, the DOI will be added here and to the repository citation metadata.
 
 ## Honesty note
 
