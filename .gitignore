@@ -6,3 +6,5 @@ manuscript/*.aux
 manuscript/*.log
 manuscript/*.out
 .pytest_cache/
+
+.venv/
