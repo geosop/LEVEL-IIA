@@ -1,0 +1,12 @@
+name: cri-leveliia
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy>=1.24
+  - scipy>=1.10
+  - pandas>=1.5
+  - matplotlib>=3.6
+  - pyyaml>=6.0
+  - pytest>=7.0
+  - pip

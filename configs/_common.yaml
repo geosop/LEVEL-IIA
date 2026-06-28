@@ -1,0 +1,3 @@
+# Shared design constants (documented here; each scenario file repeats the
+# fields it uses so every benchmark number is traceable to a single file).
+# Design anchor: T0 = 20 ms, five assigned-delay bins, 24 participants.

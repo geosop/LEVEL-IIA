@@ -1,0 +1,20 @@
+\begin{table}[t]
+\centering
+\caption{Realised operating characteristics of the locked Level II-A pipeline on simulated data (run hash \texttt{0a775ac4f1ead9d3}). Rates are fractions of $M$ Monte Carlo datasets. Not human EEG.}
+\label{tab:si-operating-characteristics}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrrrrrrrrrrrrrrrrrr}
+\toprule
+Scenario & Generator & $M$ & $P$ & trials/bin & support (ms) & $\sigma_{\mathrm{resid}}$ & $\beta_{\min}$ & $\beta^{\mathrm{inj}}$ & mean $\widehat{\beta}_\tau$ & SD $\widehat{\beta}_\tau$ & med.\ UCB & rand.\ pass & resol.\ pass & reten.\ fire & leak fire & gate pass & collider fire & support & sel.-lim. & diag.\ fail & null & opp.\ dir. \\
+\midrule
+clean\_null & forward\_only & 1000 & 24 & 12 & 0-20 & 1.0 & 40.5 & 0 & -0.096 & 4.2 & 7.0 & 0.050 & 0 & 0.001 & 0.001 & 0.003 & 0.007 & 0 & 0 & 0.001 & 0.999 & 0 \\
+injected\_residual & endpoint\_injected & 1000 & 24 & 12 & 0-20 & 1.0 & 44.2 & -60.0 & -59.9 & 4.9 & -51.7 & 1.0 & 0.935 & 0.002 & 0.002 & 1.0 & 0.005 & 0.928 & 0.005 & 0.002 & 0.065 & 0 \\
+leakage & forward\_only\_with\_leak & 1000 & 24 & 12 & 0-20 & 1.0 & 47.4 & 0 & -85.0 & 4.3 & -78.0 & 1.0 & 1.0 & 0 & 1.0 & 1.0 & 0.003 & 0 & 0 & 1.0 & 0 & 0 \\
+selection\_standard & forward\_only\_monotone\_selection & 1000 & 24 & 12 & 0-20 & 1.0 & 45.2 & 0 & -38.4 & 4.4 & -30.2 & 1.0 & 0.002 & 1.0 & 0.003 & 0.997 & 1.0 & 0 & 0.002 & 0.003 & 0.995 & 0 \\
+collider\_selection & forward\_only\_collider\_selection & 1000 & 24 & 20 & 0-20 & 1.0 & 20.6 & 0 & -35.1 & 3.7 & -28.0 & 1.0 & 0.982 & 0.004 & 0.003 & 0.981 & 1.0 & 0 & 0.979 & 0.003 & 0.018 & 0 \\
+adversarial\_null & adversarial\_forward\_only & 1000 & 24 & 12 & 0-20 & 1.0 & 47.2 & 0 & 0.049 & 5.0 & 8.3 & 0.051 & 0 & 0 & 0 & 0.002 & 0.004 & 0 & 0 & 0 & 1.0 & 0 \\
+opposite\_direction & endpoint\_injected\_positive & 1000 & 24 & 12 & 0-20 & 1.0 & 44.3 & 60.0 & 60.3 & 4.7 & 68.7 & 0 & 0 & 0 & 0.002 & 1.0 & 0.009 & 0 & 0 & 0.002 & 0.045 & 0.953 \\
+\bottomrule
+\end{tabular}
+\end{table}

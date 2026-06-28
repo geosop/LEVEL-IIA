@@ -1,0 +1,37 @@
+{
+  "anchor": {
+    "replicate": 514,
+    "modal_decision": "forward_only_adequate",
+    "base_seed": 101
+  },
+  "injected_residual": {
+    "replicate": 946,
+    "modal_decision": "supported",
+    "base_seed": 102
+  },
+  "leakage": {
+    "replicate": 210,
+    "modal_decision": "diagnostic_failure",
+    "base_seed": 103
+  },
+  "selection": {
+    "replicate": 920,
+    "modal_decision": "forward_only_adequate",
+    "base_seed": 104
+  },
+  "collider_selection": {
+    "replicate": 70,
+    "modal_decision": "selection_limited",
+    "base_seed": 105
+  },
+  "adversarial_null": {
+    "replicate": 182,
+    "modal_decision": "forward_only_adequate",
+    "base_seed": 106
+  },
+  "opposite_direction": {
+    "replicate": 184,
+    "modal_decision": "opposite_direction",
+    "base_seed": 107
+  }
+}

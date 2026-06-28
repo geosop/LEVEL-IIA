@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cri-leveliia-benchmark"
+version = "1.0.0"
+description = "Level II-A post-endpoint randomisation benchmark pipeline (simulated validation, not human EEG)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+  {name = "Alexandros Sopasakis"},
+  {name = "George Sopasakis"},
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "pandas>=1.5",
+  "matplotlib>=3.6",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
