@@ -1,4 +1,10 @@
-"""Benchmark orchestration: full locked pipeline, decision rule, scenario runner.
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jun 28 09:56:35 2026
+
+@author: ADMIN
+
+Benchmark orchestration: full locked pipeline, decision rule, scenario runner.
 
 A single dataset is carried through comparator fitting, residual freezing,
 randomisation test, bootstrap bound, audits, the scalar selection gate, and the
@@ -22,16 +28,15 @@ from . import dgp, comparator, inference, audits, selection, collider
 DECISIONS = ["supported", "forward_only_adequate", "opposite_direction",
              "selection_limited", "diagnostic_failure", "inconclusive"]
 
-
 def decide(out, cfg):
-    """Non-compensatory decision rule. Returns one of DECISIONS.
+    """Non-compensatory decision rule.
 
-    Validity audits (leakage, delivery, balance, implementation swap) take
-    precedence and route to ``diagnostic_failure``. A material negative slope is
-    classified ``selection_limited`` whenever the selection gate fails, the
-    marginal-retention audit fires, or the endpoint-by-delay collider diagnostic
-    fires, and only otherwise ``supported``. A material positive slope is an
-    ``opposite_direction`` departure.
+    Each analysed dataset is assigned exactly one outcome. Hard implementation
+    or audit failures are classified before slope interpretation. Selection and
+    collider diagnostics that make the analysed sample non-ignorable are applied
+    before the forward-only adequate null label can be assigned. A dataset is
+    therefore labelled forward_only_adequate only when audits and support-blocking
+    diagnostics pass and no material resolved departure is supported.
     """
     alpha = cfg.get("alpha", 0.05)
     bmin = out["beta_min"]
@@ -41,20 +46,39 @@ def decide(out, cfg):
         return "inconclusive"
 
     a = out["audits"]
-    if a["leakage"]["fired"] or a["delivery"]["fired"] or a["balance"]["fired"] \
-            or a["swap"]["fired"]:
+
+    if (
+        a["leakage"]["fired"]
+        or a["delivery"]["fired"]
+        or a["balance"]["fired"]
+        or a["swap"]["fired"]
+    ):
         return "diagnostic_failure"
 
-    material_neg = (out["p_rand_less"] <= alpha) and (out["ucb"] < -bmin)
-    material_pos = (out["p_rand_greater"] <= alpha) and (out["lcb"] > bmin)
+    material_neg = (
+        (out["p_rand_less"] <= alpha)
+        and (out["ucb"] < -bmin)
+    )
+    material_pos = (
+        (out["p_rand_greater"] <= alpha)
+        and (out["lcb"] > bmin)
+    )
+
+    resolved_any = material_neg or material_pos
+
+    if (
+        a["retention"]["fired"]
+        or out["collider"]["fired"]
+        or (resolved_any and not out["selection_gate"]["passed"])
+    ):
+        return "selection_limited"
 
     if material_neg:
-        if out["collider"]["fired"] or (not out["selection_gate"]["passed"]) \
-                or a["retention"]["fired"]:
-            return "selection_limited"
         return "supported"
+
     if material_pos:
         return "opposite_direction"
+
     return "forward_only_adequate"
 
 
@@ -205,11 +229,17 @@ def summarise(df, cfg, scenario_name, generator_name):
         "gate_pass_rate": float(df["gate_passed"].mean()),
         "collider_inter_fire_rate": float((df["collider_inter_z"].abs() > cfg.get("interaction_z", 3.0)).mean()),
         "collider_fire_rate": float(df["collider_fired"].mean()),
+        "support_n": int((df["decision"] == "supported").sum()),
         "support_rate": float((df["decision"] == "supported").mean()),
+        "null_n": int((df["decision"] == "forward_only_adequate").sum()),
         "null_rate": float((df["decision"] == "forward_only_adequate").mean()),
+        "selection_limited_n": int((df["decision"] == "selection_limited").sum()),
         "selection_limited_rate": float((df["decision"] == "selection_limited").mean()),
+        "diagnostic_failure_n": int((df["decision"] == "diagnostic_failure").sum()),
         "diagnostic_failure_rate": float((df["decision"] == "diagnostic_failure").mean()),
+        "opposite_direction_n": int((df["decision"] == "opposite_direction").sum()),
         "opposite_direction_rate": float((df["decision"] == "opposite_direction").mean()),
+        "inconclusive_n": int((df["decision"] == "inconclusive").sum()),
         "inconclusive_rate": float((df["decision"] == "inconclusive").mean()),
         "base_seed": cfg.get("base_seed"),
     }

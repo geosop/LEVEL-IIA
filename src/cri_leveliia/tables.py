@@ -1,7 +1,19 @@
-"""Table writers for the realised operating characteristics.
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jun 28 10:43:17 2026
 
-All numbers written here originate from the benchmark output; nothing is typed by
-hand. The LaTeX writers emit booktabs tables that the manuscript and SI include.
+@author: ADMIN
+
+Table writers for the realised operating characteristics.
+
+All numbers written here originate from the benchmark output; nothing is typed
+by hand. The LaTeX writers emit booktabs tables that the manuscript and SI
+include.
+
+For mutually exclusive outcome columns, the LaTeX outcome table reports exact
+counts over M Monte Carlo datasets with rates in parentheses. This avoids
+apparent row-sum discrepancies caused by independently rounded three-decimal
+rates.
 """
 
 from __future__ import annotations
@@ -9,7 +21,7 @@ from __future__ import annotations
 import pandas as pd
 
 
-# ordered columns for the realised operating-characteristics table (SI S9)
+# Ordered columns for the realised operating-characteristics table (SI S9).
 OC_COLUMNS = [
     ("scenario", "Scenario"),
     ("generator", "Generator"),
@@ -37,6 +49,20 @@ OC_COLUMNS = [
 ]
 
 
+OUTCOME_RATE_TO_COUNT = {
+    "support_rate": "support_n",
+    "selection_limited_rate": "selection_limited_n",
+    "diagnostic_failure_rate": "diagnostic_failure_n",
+    "null_rate": "null_n",
+    "opposite_direction_rate": "opposite_direction_n",
+    "inconclusive_rate": "inconclusive_n",
+}
+
+
+def _latex_escape_text(v):
+    return str(v).replace("_", "\\_")
+
+
 def _fmt(v):
     if isinstance(v, float):
         if v == 0:
@@ -49,6 +75,32 @@ def _fmt(v):
     return str(v)
 
 
+def _fmt_outcome_count_rate(summary, rate_key):
+    """Format a mutually exclusive outcome as count/M (rate)."""
+    rate = float(summary.get(rate_key, 0.0))
+    count_key = OUTCOME_RATE_TO_COUNT[rate_key]
+    M = int(summary.get("M", 0))
+
+    if count_key in summary:
+        count = int(summary[count_key])
+    else:
+        count = int(round(rate * M))
+
+    return f"{count}/{M} ({rate:.3f})"
+
+
+def _fmt_cell(summary, key):
+    v = summary.get(key, "")
+
+    if key in OUTCOME_RATE_TO_COUNT:
+        return _fmt_outcome_count_rate(summary, key)
+
+    if isinstance(v, str):
+        return _latex_escape_text(v)
+
+    return _fmt(v)
+
+
 def operating_characteristics_csv(summaries, path):
     df = pd.DataFrame(summaries)
     df.to_csv(path, index=False)
@@ -59,6 +111,7 @@ def operating_characteristics_latex(summaries, path, caption, label, columns=Non
     columns = columns or OC_COLUMNS
     keys = [k for k, _ in columns]
     heads = [h for _, h in columns]
+
     lines = []
     lines.append("\\begin{table}[t]")
     lines.append("\\centering")
@@ -70,17 +123,18 @@ def operating_characteristics_latex(summaries, path, caption, label, columns=Non
     lines.append("\\toprule")
     lines.append(" & ".join(heads) + " \\\\")
     lines.append("\\midrule")
+
     for s in summaries:
-        row = []
-        for k in keys:
-            v = s.get(k, "")
-            row.append(_fmt(v) if not isinstance(v, str) else v.replace("_", "\\_"))
+        row = [_fmt_cell(s, k) for k in keys]
         lines.append(" & ".join(row) + " \\\\")
+
     lines.append("\\bottomrule")
     lines.append("\\end{tabular}")
     lines.append("\\end{table}")
-    with open(path, "w") as fh:
+
+    with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
+
     return "\n".join(lines)
 
 
@@ -94,22 +148,33 @@ def collider_subtable_latex(summary, sweep_df, path, caption, label):
     lines.append("\\footnotesize")
     lines.append("\\begin{tabular}{lrrrrrr}")
     lines.append("\\toprule")
-    lines.append("$\\gamma$ & med.\\ $\\widehat{\\beta}_\\tau$ & marg.\\ imbal. & "
-                 "reten.\\ fire & resol.\\ pass & interaction fire & sel.-lim. \\\\")
+    lines.append(
+        "$\\gamma$ & med.\\ $\\widehat{\\beta}_\\tau$ & marg.\\ imbal. & "
+        "reten.\\ fire & resol.\\ pass & interaction fire & sel.-lim. \\\\"
+    )
     lines.append("\\midrule")
+
     for _, r in sweep_df.iterrows():
-        lines.append(" & ".join([
-            _fmt(r["collider_gamma"]),
-            _fmt(r["median_beta_hat"]),
-            _fmt(r["retention_imbalance_med"]),
-            _fmt(r["retention_fire_rate"]),
-            _fmt(r["materiality_pass_rate"]),
-            _fmt(r["interaction_fire_rate"]),
-            _fmt(r["selection_limited_rate"]),
-        ]) + " \\\\")
+        lines.append(
+            " & ".join(
+                [
+                    _fmt(r["collider_gamma"]),
+                    _fmt(r["median_beta_hat"]),
+                    _fmt(r["retention_imbalance_med"]),
+                    _fmt(r["retention_fire_rate"]),
+                    _fmt(r["materiality_pass_rate"]),
+                    _fmt(r["interaction_fire_rate"]),
+                    _fmt(r["selection_limited_rate"]),
+                ]
+            )
+            + " \\\\"
+        )
+
     lines.append("\\bottomrule")
     lines.append("\\end{tabular}")
     lines.append("\\end{table}")
-    with open(path, "w") as fh:
+
+    with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
+
     return "\n".join(lines)
