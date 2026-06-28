@@ -259,9 +259,9 @@ def _draw_panel(ax, panel: dict, obj: dict, summary: dict, ylim: tuple[float, fl
         ax.scatter(
             np.full(y.size, x) + x_jitter,
             y,
-            s=7,
+            s=11,
             color=color,
-            alpha=0.14,
+            alpha=0.38,
             linewidths=0,
             zorder=1,
         )
@@ -382,7 +382,7 @@ def _draw_leakage_inset(ax, leakage_obj: dict) -> None:
     excursion_pct = 100.0 * float(excursion)
     crit_pct = 100.0 * float(r_crit)
 
-    ins = ax.inset_axes([0.46, 0.70, 0.50, 0.12])
+    ins = ax.inset_axes([0.32, 0.70, 0.55, 0.12])
     ins.barh([0], [excursion_pct], color=RED, alpha=0.85, height=0.7)
     ins.axvline(crit_pct, color="#222222", lw=1.4)
 
