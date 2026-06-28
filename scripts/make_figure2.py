@@ -387,7 +387,7 @@ def _draw_leakage_inset(ax, leakage_obj: dict) -> None:
     ins.axvline(crit_pct, color="#222222", lw=1.4)
 
     ins.text(
-        crit_pct,
+        crit_pct - 7.0,
         1.05,
         f"crit {crit_pct:.1f}%",
         fontsize=7.0,
