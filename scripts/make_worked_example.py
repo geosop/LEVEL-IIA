@@ -1,4 +1,12 @@
-﻿from pathlib import Path
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jun 29 11:10:22 2026
+
+@author: ADMIN
+
+python id="make_worked_example_py"
+"""
+from pathlib import Path
 import json
 import pandas as pd
 
@@ -20,8 +28,10 @@ nul = pd.read_csv(RUN_DIR / "raw" / "anchor.csv")
 inj_row = inj.loc[inj["replicate"] == inj_rep].iloc[0]
 nul_row = nul.loc[nul["replicate"] == null_rep].iloc[0]
 
+
 def get(row, name, default="---"):
     return row[name] if name in row.index else default
+
 
 def fmt(x, nd=1):
     try:
@@ -29,12 +39,52 @@ def fmt(x, nd=1):
     except Exception:
         return str(x)
 
+
 def fmtp(x):
     try:
         x = float(x)
         return f"{x:.1e}" if x < 0.001 else f"{x:.3f}"
     except Exception:
         return str(x)
+
+
+def tex_escape_text(x):
+    """Escape text for ordinary LaTeX text mode."""
+    return (
+        str(x)
+        .replace("\\", r"\textbackslash{}")
+        .replace("_", r"\_")
+        .replace("%", r"\%")
+        .replace("&", r"\&")
+        .replace("#", r"\#")
+    )
+
+
+def tex_texttt(x):
+    """Safe monospaced LaTeX text."""
+    return r"\texttt{" + tex_escape_text(x) + "}"
+
+
+inj_decision = str(get(inj_row, "decision"))
+nul_decision = str(get(nul_row, "decision"))
+
+inj_decision_tex = tex_texttt(inj_decision)
+nul_decision_tex = tex_texttt(nul_decision)
+
+inj_support = int(inj_decision == "supported")
+nul_support = int(nul_decision == "supported")
+
+inj_sel_lim = int(inj_decision == "selection_limited")
+nul_sel_lim = int(nul_decision == "selection_limited")
+
+inj_diag = int(inj_decision == "diagnostic_failure")
+nul_diag = int(nul_decision == "diagnostic_failure")
+
+inj_null = int(inj_decision == "forward_only_adequate")
+nul_null = int(nul_decision == "forward_only_adequate")
+
+inj_opp = int(inj_decision == "opposite_direction")
+nul_opp = int(nul_decision == "opposite_direction")
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
@@ -56,29 +106,32 @@ rows for the representative supported injected-residual draw and the
 representative clean-null draw. Slope, bound and floor units are
 \(\mu\mathrm{{V\,s^{{-1}}}}\).}}
 \label{{tab:si-worked-decision}}
-\begin{{tabular}}{{lccc}}
+\footnotesize
+\setlength{{\tabcolsep}}{{3.5pt}}
+\begin{{tabularx}}{{\textwidth}}{{@{{}}p{{3.9cm}}p{{3.0cm}}p{{3.0cm}}p{{3.0cm}}@{{}}}}
 \toprule
 Decision object & Criterion & Supported draw & Clean-null draw \\
 \midrule
 Scenario & recorded generator & injected residual & clean null \\
 Replicate & representative index & \({inj_rep}\) & \({null_rep}\) \\
-Decision & executable classifier & \texttt{{{get(inj_row, "decision")}}} & \texttt{{{get(nul_row, "decision")}}} \\
+Decision & executable classifier & {inj_decision_tex} & {nul_decision_tex} \\
 Estimate \(\widehat\beta_\tau\) & reported & \({fmt(get(inj_row, "beta_hat"))}\) & \({fmt(get(nul_row, "beta_hat"))}\) \\
-Bootstrap-t \(\mathrm{{UCB}}_{{0.95}}\) & \(<-\beta_{{\min}}\) & \({fmt(get(inj_row, "ucb"))}\) & \({fmt(get(nul_row, "ucb"))}\) \\
-Bootstrap-t \(\mathrm{{LCB}}_{{0.95}}\) & reported & \({fmt(get(inj_row, "lcb"))}\) & \({fmt(get(nul_row, "lcb"))}\) \\
+Bootstrap-\(t\) \(\mathrm{{UCB}}_{{0.95}}\) & \(<-\beta_{{\min}}\) & \({fmt(get(inj_row, "ucb"))}\) & \({fmt(get(nul_row, "ucb"))}\) \\
+Bootstrap-\(t\) \(\mathrm{{LCB}}_{{0.95}}\) & reported & \({fmt(get(inj_row, "lcb"))}\) & \({fmt(get(nul_row, "lcb"))}\) \\
 Resolution floor \(\beta_{{\min}}\) & registered formula & \({fmt(get(inj_row, "beta_min"))}\) & \({fmt(get(nul_row, "beta_min"))}\) \\
 Randomisation \(p\), negative direction & \(\le 0.05\) & \({fmtp(get(inj_row, "p_rand_less"))}\) & \({fmtp(get(nul_row, "p_rand_less"))}\) \\
 Randomisation \(p\), positive direction & reported & \({fmtp(get(inj_row, "p_rand_greater"))}\) & \({fmtp(get(nul_row, "p_rand_greater"))}\) \\
-Support indicator & final outcome column & \({int(get(inj_row, "supported", 0))}\) & \({int(get(nul_row, "supported", 0))}\) \\
-Selection-limited indicator & final outcome column & \({int(get(inj_row, "selection_limited", 0))}\) & \({int(get(nul_row, "selection_limited", 0))}\) \\
-Diagnostic-failure indicator & final outcome column & \({int(get(inj_row, "diagnostic_failure", 0))}\) & \({int(get(nul_row, "diagnostic_failure", 0))}\) \\
-Null indicator & final outcome column & \({int(get(inj_row, "forward_only_adequate", 0))}\) & \({int(get(nul_row, "forward_only_adequate", 0))}\) \\
+Support indicator & final outcome class & \({inj_support}\) & \({nul_support}\) \\
+Selection-limited indicator & final outcome class & \({inj_sel_lim}\) & \({nul_sel_lim}\) \\
+Diagnostic-failure indicator & final outcome class & \({inj_diag}\) & \({nul_diag}\) \\
+Opposite-direction indicator & final outcome class & \({inj_opp}\) & \({nul_opp}\) \\
+Null indicator & final outcome class & \({inj_null}\) & \({nul_null}\) \\
 \bottomrule
-\end{{tabular}}
+\end{{tabularx}}
 \end{{table}}
 """
 
 OUT.write_text(tex, encoding="utf-8")
 print(f"Wrote {OUT}")
-print(f"Injected residual replicate: {inj_rep}")
-print(f"Clean-null replicate: {null_rep}")
+print(f"Injected residual replicate: {inj_rep}, decision: {inj_decision}")
+print(f"Clean-null replicate: {null_rep}, decision: {nul_decision}")

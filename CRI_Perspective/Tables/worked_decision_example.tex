@@ -16,23 +16,26 @@ rows for the representative supported injected-residual draw and the
 representative clean-null draw. Slope, bound and floor units are
 \(\mu\mathrm{V\,s^{-1}}\).}
 \label{tab:si-worked-decision}
-\begin{tabular}{lccc}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\textwidth}{@{}p{3.9cm}p{3.0cm}p{3.0cm}p{3.0cm}@{}}
 \toprule
 Decision object & Criterion & Supported draw & Clean-null draw \\
 \midrule
 Scenario & recorded generator & injected residual & clean null \\
 Replicate & representative index & \(408\) & \(219\) \\
-Decision & executable classifier & \texttt{supported} & \texttt{forward_only_adequate} \\
+Decision & executable classifier & \texttt{supported} & \texttt{forward\_only\_adequate} \\
 Estimate \(\widehat\beta_\tau\) & reported & \(-60.5\) & \(0.0\) \\
-Bootstrap-t \(\mathrm{UCB}_{0.95}\) & \(<-\beta_{\min}\) & \(-52.1\) & \(6.0\) \\
-Bootstrap-t \(\mathrm{LCB}_{0.95}\) & reported & \(-68.7\) & \(-7.0\) \\
+Bootstrap-\(t\) \(\mathrm{UCB}_{0.95}\) & \(<-\beta_{\min}\) & \(-52.1\) & \(6.0\) \\
+Bootstrap-\(t\) \(\mathrm{LCB}_{0.95}\) & reported & \(-68.7\) & \(-7.0\) \\
 Resolution floor \(\beta_{\min}\) & registered formula & \(43.5\) & \(41.0\) \\
 Randomisation \(p\), negative direction & \(\le 0.05\) & \(0.001\) & \(0.464\) \\
 Randomisation \(p\), positive direction & reported & \(1.000\) & \(0.574\) \\
-Support indicator & final outcome column & \(0\) & \(0\) \\
-Selection-limited indicator & final outcome column & \(0\) & \(0\) \\
-Diagnostic-failure indicator & final outcome column & \(0\) & \(0\) \\
-Null indicator & final outcome column & \(0\) & \(0\) \\
+Support indicator & final outcome class & \(1\) & \(0\) \\
+Selection-limited indicator & final outcome class & \(0\) & \(0\) \\
+Diagnostic-failure indicator & final outcome class & \(0\) & \(0\) \\
+Opposite-direction indicator & final outcome class & \(0\) & \(0\) \\
+Null indicator & final outcome class & \(0\) & \(1\) \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
