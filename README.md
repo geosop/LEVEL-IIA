@@ -1,4 +1,4 @@
-﻿# Level II-A post-endpoint randomisation benchmark
+# Level II-A post-endpoint randomisation benchmark
 
 Reproducible benchmark pipeline for the Perspective **"Testing past-adapted accounts of anticipatory EEG by post-endpoint randomisation."**
 
