@@ -1,4 +1,4 @@
-# Level II-A post-endpoint randomisation benchmark
+﻿# Level II-A post-endpoint randomisation benchmark
 
 Reproducible benchmark pipeline for the Perspective **"Testing past-adapted accounts of anticipatory EEG by post-endpoint randomisation."**
 
@@ -15,7 +15,7 @@ run hash: 9d2658d6d147de10
 M:        1200 Monte Carlo datasets per scenario
 P:        24 participants
 support:  [0, 20] ms
-````
+```
 
 The corresponding output directory is
 
@@ -131,11 +131,11 @@ First, it checks exact internal invariants:
 
 * required scenarios are present;
 * final-outcome counts are nonnegative integer counts;
-* final-outcome counts do not exceed (M);
-* final-outcome rates equal count divided by (M);
-* mutually exclusive final-outcome counts sum to (M);
+* final-outcome counts do not exceed `M`;
+* final-outcome rates equal count divided by `M`;
+* mutually exclusive final-outcome counts sum to `M`;
 * mutually exclusive final-outcome rates sum to one;
-* diagnostic rates lie in ([0,1]);
+* diagnostic rates lie in `[0,1]`;
 * row-level run hashes match the verified output directory when recorded.
 
 Second, it checks operating-characteristic qualification thresholds:
@@ -210,3 +210,4 @@ A Zenodo archive and DOI will be minted from the first public GitHub release. Af
 ## Honesty note
 
 The numbers reported are operating characteristics of a software pipeline on simulated data. They establish that the locked decision procedure behaves as designed under the declared synthetic generators. They are not empirical evidence about human EEG and not a mechanism claim.
+
