@@ -23,13 +23,13 @@ The corresponding output directory is
 outputs/9d2658d6d147de10/
 ```
 
-The complete machine-generated operating-characteristics table is archived at
+The canonical numeric source for the operating characteristics is
 
 ```text
-outputs/9d2658d6d147de10/tables/operating_characteristics.tex
+outputs/9d2658d6d147de10/summary/operating_characteristics.csv
 ```
 
-For page-width readability, the manuscript may print a split version of the same values, separating design summaries from diagnostic and final-outcome summaries. The authoritative numeric source remains the frozen run directory.
+The manuscript-facing LaTeX tables are generated from that CSV as split design and outcome tables. The legacy single wide operating-characteristics table is not an authoritative manuscript source and is no longer emitted by the release workflow.
 
 ## What the benchmark establishes
 
@@ -163,7 +163,8 @@ outputs/<run_hash>/
   summary/operating_characteristics.csv
   summary/collider_sweep.csv
   summary/representative_index.json
-  tables/operating_characteristics.tex
+  tables/operating_characteristics_design.tex
+  tables/operating_characteristics_outcomes.tex
   tables/collider_sweep.tex
   figures/figure2_validation.pdf
   metadata/run_metadata.json

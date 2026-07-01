@@ -19,6 +19,7 @@ rates.
 from __future__ import annotations
 
 import numbers
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 
 import pandas as pd
@@ -68,19 +69,37 @@ OUTCOME_RATE_TO_COUNT = {
 
 
 def _latex_escape_text(v):
+    """Escape plain-text cells for LaTeX."""
     return str(v).replace("_", "\\_")
 
 
+def _round_half_up_str(value, places):
+    """Return a fixed-decimal string rounded half-up."""
+    try:
+        dec = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return str(value)
+
+    if not dec.is_finite():
+        return str(value)
+
+    quant = Decimal("1").scaleb(-places)
+    rounded = dec.quantize(quant, rounding=ROUND_HALF_UP)
+    return f"{rounded:.{places}f}"
+
+
 def _fmt(v):
+    """Format ordinary numeric table cells."""
     if isinstance(v, numbers.Real) and not isinstance(v, bool):
         v = float(v)
         if v == 0:
             return "0"
-        if abs(v) < 1 and abs(v) >= 1e-4:
-            return f"{v:.3f}"
+        if 1e-4 <= abs(v) < 1:
+            return _round_half_up_str(v, 3)
         if abs(v) >= 1:
-            return f"{v:.1f}"
+            return _round_half_up_str(v, 1)
         return f"{v:.2e}"
+
     return str(v)
 
 
@@ -89,7 +108,8 @@ def _infer_run_hash_from_path(path):
     if path is None:
         return None
 
-    parts = Path(path).parts
+    # Normalize Windows and POSIX separators so inference works on either OS.
+    parts = [p for p in str(path).replace("\\", "/").split("/") if p]
     lowered = [p.lower() for p in parts]
 
     if "outputs" not in lowered:
@@ -139,12 +159,20 @@ def _fmt_outcome_count_rate(summary, rate_key):
     count_key = OUTCOME_RATE_TO_COUNT[rate_key]
     M = int(summary.get("M", 0))
 
-    if count_key in summary:
-        count = int(summary[count_key])
+    raw_count = summary.get(count_key, None)
+    if raw_count is not None and not pd.isna(raw_count):
+        count = int(raw_count)
     else:
         count = int(round(rate * M))
 
-    return f"{count}/{M} ({rate:.3f})"
+    if M <= 0:
+        return f"{count}/{M} ({_round_half_up_str(rate, 3)})"
+
+    display_rate = (Decimal(count) / Decimal(M)).quantize(
+        Decimal("0.001"),
+        rounding=ROUND_HALF_UP,
+    )
+    return f"{count}/{M} ({display_rate})"
 
 
 def _fmt_cell(summary, key):
@@ -160,6 +188,9 @@ def _fmt_cell(summary, key):
 
 
 def operating_characteristics_csv(summaries, path):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
     df = pd.DataFrame(summaries)
     df.to_csv(path, index=False)
     return df
@@ -201,7 +232,9 @@ def operating_characteristics_latex(
     lines.append("\\end{tabular}")
     lines.append("\\end{table}")
 
-    with open(path, "w", encoding="utf-8") as fh:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
 
     return "\n".join(lines)
@@ -254,7 +287,9 @@ def collider_subtable_latex(
     lines.append("\\end{tabular}")
     lines.append("\\end{table}")
 
-    with open(path, "w", encoding="utf-8") as fh:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
 
     return "\n".join(lines)

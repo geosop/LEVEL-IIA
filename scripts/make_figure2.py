@@ -36,6 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cri_leveliia import comparator, dgp  # noqa: E402
+from cri_leveliia.formatting import count_rate_display  # noqa: E402
 from cri_leveliia.benchmarks import _replicate_seed, pipeline_once  # noqa: E402
 
 
@@ -119,8 +120,7 @@ def _count(summary: dict, count_key: str, rate_key: str) -> int:
 def _count_rate(summary: dict, count_key: str, rate_key: str) -> str:
     M = _as_int(summary.get("M", 0))
     n = _count(summary, count_key, rate_key)
-    rate = _as_float(summary.get(rate_key, n / M if M else 0.0))
-    return f"{n}/{M} ({rate:.3f})"
+    return count_rate_display(n, M)
 
 
 def _panel_objects(cfg: dict, base_seed: int, replicate: int) -> dict:
@@ -522,9 +522,15 @@ def main() -> None:
     shutil.copy(out_pdf, man / "CRI_synthetic_validation.pdf")
     shutil.copy(out_png, man / "CRI_synthetic_validation.png")
 
+    persp = ROOT / "CRI_Perspective" / "Figures"
+    persp.mkdir(parents=True, exist_ok=True)
+    shutil.copy(out_pdf, persp / "CRI_synthetic_validation.pdf")
+    shutil.copy(out_png, persp / "CRI_synthetic_validation.png")
+
     print(f"[make_figure2] wrote {out_pdf}")
     print("[make_figure2] copied manuscript/figures/CRI_synthetic_validation.pdf")
     print("[make_figure2] copied manuscript/figures/CRI_synthetic_validation.png")
+    print("[make_figure2] copied CRI_Perspective/Figures/CRI_synthetic_validation.{pdf,png}")
 
 
 if __name__ == "__main__":

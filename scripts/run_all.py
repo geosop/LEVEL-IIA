@@ -124,12 +124,11 @@ def main():
             label="tab:si-collider-sweep")
 
     T.operating_characteristics_csv(summaries, run_dir / "summary" / "operating_characteristics.csv")
-    T.operating_characteristics_latex(
-        summaries, run_dir / "tables" / "operating_characteristics.tex",
-        caption=("Realised operating characteristics of the locked Level II-A "
-                 "pipeline on simulated data (run hash \\texttt{" + run_hash + "}). "
-                 "Rates are fractions of $M$ Monte Carlo datasets. Not human EEG."),
-        label="tab:si-operating-characteristics")
+    # Manuscript-facing operating-characteristics tables are generated from
+    # summary/operating_characteristics.csv by scripts/make_tables.py. The
+    # legacy single wide LaTeX table is intentionally no longer emitted, because
+    # it duplicated the split SI tables and previously allowed display-rounding
+    # drift across archived artifacts.
 
     with open(run_dir / "summary" / "representative_index.json", "w") as fh:
         json.dump(rep_index, fh, indent=2)

@@ -323,7 +323,11 @@ def write_split_tables(
         f"in Table~\\ref{{tab:si-oc-outcomes}}. Run hash \\texttt{{{actual_hash}}}; "
         f"$M={m}$ datasets per scenario; $P={p}$ participants; assigned-delay support "
         f"${support_text}$ ms; "
-        f"$\\sigma_{{\\mathrm{{resid}}}}={sigma_resid}\\,\\mu$V; not human EEG."
+        f"$\\sigma_{{\\mathrm{{resid}}}}={sigma_resid}\\,\\mu$V is the nominal "
+        "generator residual-noise scale; the displayed $\\beta_{\\min}$ is "
+        "recomputed for each scenario from the label-blind realised residual "
+        "scale and retained-trial yield through the locked materiality formula, "
+        "so its variation across rows is expected; not human EEG."
     )
 
     outcome_caption = (

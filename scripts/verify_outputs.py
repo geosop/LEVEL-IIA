@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Verify benchmark output invariants and operating-characteristic thresholds.
 
 Usage:
@@ -31,6 +31,11 @@ import argparse
 import math
 import sys
 from pathlib import Path
+import sys
+
+ROOT_FOR_IMPORT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT_FOR_IMPORT / "src"))
+from cri_leveliia.formatting import rate_display  # noqa: E402
 
 import pandas as pd
 
@@ -317,9 +322,9 @@ def _check_operating_thresholds(df_indexed: pd.DataFrame, smoke: bool, errors: l
         passed = _cmp(v, op, t)
 
         if passed:
-            print(f"[ok  ] {desc:38s} {scen}.{col}={v:.3f} {op} {t:.3f}")
+            print(f"[ok  ] {desc:38s} {scen}.{col}={rate_display(v)} {op} {rate_display(t)}")
         else:
-            _fail(errors, f"{desc}: {scen}.{col}={v:.3f} not {op} {t:.3f}")
+            _fail(errors, f"{desc}: {scen}.{col}={rate_display(v)} not {op} {rate_display(t)}")
 
 
 def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, errors: list[str]) -> None:
