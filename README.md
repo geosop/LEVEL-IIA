@@ -29,7 +29,12 @@ The canonical numeric source for the operating characteristics is
 outputs/9d2658d6d147de10/summary/operating_characteristics.csv
 ```
 
-The manuscript-facing LaTeX tables are generated from that CSV as split design and outcome tables. The legacy single wide operating-characteristics table is not an authoritative manuscript source and is no longer emitted by the release workflow.
+The manuscript-facing LaTeX tables are generated from that CSV as split design and outcome tables:
+
+```text
+outputs/9d2658d6d147de10/tables/operating_characteristics_design.tex
+outputs/9d2658d6d147de10/tables/operating_characteristics_outcomes.tex
+```
 
 ## What the benchmark establishes
 
@@ -107,6 +112,7 @@ Regenerate manuscript-facing artefacts from the locked run:
 
 ```bash
 python scripts/make_figure2.py --run-hash 9d2658d6d147de10
+python scripts/make_split_oc_tables.py --run-hash 9d2658d6d147de10
 python scripts/make_tables.py --run-hash 9d2658d6d147de10
 python scripts/make_worked_example.py
 ```
@@ -153,7 +159,7 @@ The optional `--strict-manuscript` flag checks the exact final-outcome counts us
 * **Replicate reproducibility.** Re-running a replicate reproduces it exactly, which is also how Figure 2 panels and the SI worked example are rebuilt.
 * **Run hash.** `metadata.compute_run_hash` is a SHA-256 digest, truncated to the first 16 hex characters, over the resolved configuration bundle plus the code version and seed family. The same configs and code map to the same hash; changing any config changes the hash.
 * **No overwrite by default.** `run_all.py` writes to `outputs/<run_hash>/`. A new run writes a new directory unless `--overwrite` is passed.
-* **Latest run pointer.** `outputs/LATEST_RUN.txt` records the hash of the last completed full run.
+* **Latest run pointer.** `outputs/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution, including smoke runs. The locked manuscript run is always identified explicitly by the frozen run hash above.
 
 ## Output layout
 
@@ -173,6 +179,7 @@ outputs/<run_hash>/
 Manuscript-facing generated artefacts are copied or written under:
 
 ```text
+manuscript/tables/
 CRI_Perspective/Tables/
 CRI_Perspective/Figures/
 ```
