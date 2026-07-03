@@ -10,8 +10,10 @@ python scripts/run_all.py --config configs/anchor.yaml
 Outputs are written to outputs/<run_hash>/ with raw per-replicate CSVs,
 scenario summary JSON/CSV files, split operating-characteristics LaTeX tables,
 the collider sweep, the representative-draw index, figures, and run metadata.
-Re-running writes to the deterministic run directory unless --overwrite is
-given.
+Re-running the same deterministic configuration refuses to touch an existing
+run directory by default. Use --outdir for an independent reproduction,
+--resume for an incomplete run directory, or --overwrite for a deliberate clean
+regeneration.
 """
 
 import argparse
