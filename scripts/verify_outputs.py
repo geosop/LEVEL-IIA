@@ -360,6 +360,88 @@ def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, err
         _ok("strict manuscript counts match run 9d2658d6d147de10")
 
 
+def _check_false_adequacy_rates(
+    run_dir: Path,
+    df_indexed: pd.DataFrame,
+    run_hash: str,
+    smoke: bool,
+    errors: list[str],
+) -> None:
+    """Check derived false-adequacy CSV against operating_characteristics.csv."""
+    target_scenarios = ["injected_residual", "opposite_direction"]
+    available_targets = [s for s in target_scenarios if s in df_indexed.index]
+
+    path = run_dir / "summary" / "false_adequacy_rates.csv"
+
+    if not available_targets:
+        if path.exists():
+            _ok("false-adequacy file may be header-only for partial non-departure runs")
+        return
+
+    if not path.exists():
+        _fail(errors, f"missing derived false-adequacy file: {path}")
+        return
+
+    fa = pd.read_csv(path)
+    required = {
+        "scenario",
+        "false_adequacy_n",
+        "M",
+        "false_adequacy_rate",
+        "wilson95_low",
+        "wilson95_high",
+        "run_hash",
+    }
+    missing = sorted(required.difference(fa.columns))
+    if missing:
+        _fail(errors, f"false-adequacy file missing columns: {', '.join(missing)}")
+        return
+
+    fa_indexed = fa.set_index("scenario", drop=False)
+    tol = 1.0e-6
+
+    for scen in available_targets:
+        if scen not in fa_indexed.index:
+            _fail(errors, f"false-adequacy file missing scenario: {scen}")
+            continue
+
+        source = df_indexed.loc[scen]
+        derived = fa_indexed.loc[scen]
+        expected_n = int(source["null_n"])
+        expected_m = int(source["M"])
+        expected_rate = expected_n / expected_m
+
+        observed_n = int(derived["false_adequacy_n"])
+        observed_m = int(derived["M"])
+        observed_rate = float(derived["false_adequacy_rate"])
+
+        if observed_n != expected_n:
+            _fail(errors, f"{scen}: false_adequacy_n={observed_n}, expected null_n={expected_n}")
+        if observed_m != expected_m:
+            _fail(errors, f"{scen}: false-adequacy M={observed_m}, expected {expected_m}")
+        if abs(observed_rate - expected_rate) > tol:
+            _fail(
+                errors,
+                (
+                    f"{scen}: false_adequacy_rate={observed_rate:.12g}, "
+                    f"expected null_n/M={expected_rate:.12g}"
+                ),
+            )
+        if str(derived["run_hash"]) != str(run_hash):
+            _fail(errors, f"{scen}: false-adequacy run_hash mismatch")
+        if not (
+            0.0
+            <= float(derived["wilson95_low"])
+            <= observed_rate
+            <= float(derived["wilson95_high"])
+            <= 1.0
+        ):
+            _fail(errors, f"{scen}: Wilson interval does not contain false-adequacy rate")
+
+    if not errors:
+        _ok("derived false-adequacy rates match null_n/M for material-departure scenarios")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
@@ -398,6 +480,8 @@ def main() -> None:
 
     df_indexed = df.set_index("scenario", drop=False)
     _check_operating_thresholds(df_indexed, args.smoke, errors)
+    run_dir = Path(args.outdir) / run_hash
+    _check_false_adequacy_rates(run_dir, df_indexed, run_hash, args.smoke, errors)
 
     if args.strict_manuscript:
         _check_locked_manuscript_counts(df_indexed, run_hash, errors)

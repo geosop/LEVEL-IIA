@@ -29,6 +29,13 @@ The canonical numeric source for the operating characteristics is
 outputs/9d2658d6d147de10/summary/operating_characteristics.csv
 ```
 
+The false-adequacy rates under material endpoint-level departures are derived
+from the same frozen operating-characteristics CSV and written as
+
+```text
+outputs/9d2658d6d147de10/summary/false_adequacy_rates.csv
+```
+
 The manuscript-facing LaTeX tables are generated from that CSV as split design and outcome tables:
 
 ```text
@@ -155,7 +162,9 @@ Second, it checks operating-characteristic qualification thresholds:
 * false-support control under clean and adversarial forward-only nulls;
 * recovery under injected negative residual;
 * leakage, selection and collider failures are blocked;
-* opposite-direction injections are not counted as directional support.
+* opposite-direction injections are not counted as directional support;
+* false-adequacy rates under material endpoint-level departures equal the
+  corresponding forward-only adequate counts divided by `M`.
 
 The optional `--strict-manuscript` flag checks the exact final-outcome counts used in the manuscript for run `9d2658d6d147de10`. This flag is intended for release checks of the manuscript run, not for arbitrary exploratory runs.
 
@@ -173,6 +182,7 @@ The optional `--strict-manuscript` flag checks the exact final-outcome counts us
 outputs/<run_hash>/
   raw/*.csv                         per-replicate decision objects
   summary/operating_characteristics.csv
+  summary/false_adequacy_rates.csv
   summary/collider_sweep.csv
   summary/representative_index.json
   tables/operating_characteristics_design.tex

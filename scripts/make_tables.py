@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Rebuild manuscript-facing LaTeX tables from a frozen run.
 
 This script generates the split S5/S6 operating-characteristics tables from the
@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from make_split_oc_tables import write_split_tables
+from make_false_adequacy_rates import write_false_adequacy_rates
 
 
 def copy_required(src_dir: Path, dst_dir: Path, names: list[str]) -> None:
@@ -50,6 +51,17 @@ def main() -> None:
 
     # Rebuild split S5/S6 tables from the frozen CSV.
     write_split_tables(csv_path=csv_path, outdir=run_tables, run_hash=args.run_hash)
+
+    # Rebuild machine-readable false-adequacy rates from the same frozen CSV.
+    false_adequacy_csv = write_false_adequacy_rates(
+        csv_path=csv_path,
+        outdir=run_summary,
+        run_hash=args.run_hash,
+    )
+    print(
+        f"[make_tables] {false_adequacy_csv.name} -> "
+        f"{false_adequacy_csv.parent.relative_to(ROOT)}/"
+    )
 
     split_names = [
         "operating_characteristics_design.tex",
