@@ -8,3 +8,5 @@ manuscript/*.out
 .pytest_cache/
 
 .venv/
+
+.venv312/
