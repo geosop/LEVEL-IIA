@@ -33,6 +33,7 @@ from cri_leveliia import metadata as MD  # noqa: E402
 from cri_leveliia import tables as T  # noqa: E402
 from cri_leveliia.figures import representative_index  # noqa: E402
 from make_split_oc_tables import write_split_tables  # noqa: E402
+from make_false_adequacy_rates import write_false_adequacy_rates  # noqa: E402
 
 
 SCENARIOS = [
@@ -221,6 +222,12 @@ def main():
         outdir=run_dir / "tables",
         run_hash=run_hash,
     )
+    false_adequacy_csv = write_false_adequacy_rates(
+        csv_path=oc_csv,
+        outdir=run_dir / "summary",
+        run_hash=run_hash,
+    )
+    print(f"[run_all] wrote {false_adequacy_csv}")
 
     with (run_dir / "summary" / "representative_index.json").open(
         "w",

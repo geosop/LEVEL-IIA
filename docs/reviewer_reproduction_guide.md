@@ -21,7 +21,8 @@ pytest -q
 
 `verify_outputs.py` checks the qualification invariants (false-support control,
 recovery power, audit blocking, the collider scope test, opposite-direction
-classification). It exits non-zero on failure.
+classification, and the derived false-adequacy rates under material endpoint-level
+departures). It exits non-zero on failure.
 
 ## 3. Full manuscript run
 
@@ -42,6 +43,9 @@ python scripts/verify_outputs.py --run-hash $RUN_HASH
 
 * `summary/operating_characteristics.csv` underlies the SI operating-characteristics
   table and the Figure 2 panel rates.
+* `summary/false_adequacy_rates.csv` is derived from `summary/operating_characteristics.csv`
+  and reports the rate at which a material endpoint-level departure is classified
+  as forward-only adequate.
 * `summary/collider_sweep.csv` underlies the collider scope subtable: marginal
   retention imbalance stays small while the manufactured slope and the interaction
   diagnostic fire rate grow.

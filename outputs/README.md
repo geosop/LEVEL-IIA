@@ -6,6 +6,6 @@ hash is recorded in `LATEST_RUN.txt` and in the Perspective/SI data accessibilit
 statement.
 
 Subdirectories: `raw/` (per-replicate decision objects), `summary/` (scenario
-summaries, collider sweep, representative-replicate index), `tables/` (LaTeX),
-`figures/` (regenerated Figure 2), `metadata/` (seeds, package versions,
-timestamp, run hash).
+summaries, derived false-adequacy rates, collider sweep, representative-replicate
+index), `tables/` (LaTeX), `figures/` (regenerated Figure 2), `metadata/`
+(seeds, package versions, timestamp, run hash).
