@@ -89,16 +89,22 @@ python scripts/run_all.py --smoke
 python scripts/verify_outputs.py --smoke
 ```
 
-Full benchmark run:
+Full benchmark run in a separate reproduction directory:
 
 ```bash
-python scripts/run_all.py --all
+python scripts/run_all.py --all --outdir outputs_reproduced
 ```
 
-Resume an interrupted full run:
+The repository already contains the locked manuscript run. Re-running the same
+configuration targets the same deterministic run hash and is refused by default
+to protect the frozen output directory. Use `--resume` only for an incomplete
+run directory, or `--overwrite` only when intentionally regenerating a run from
+scratch.
+
+Resume an interrupted reproduction run in that same separate directory:
 
 ```bash
-python scripts/run_all.py --all --resume
+python scripts/run_all.py --all --outdir outputs_reproduced --resume
 ```
 
 Verify the locked manuscript run:
@@ -158,8 +164,8 @@ The optional `--strict-manuscript` flag checks the exact final-outcome counts us
 * **Deterministic seeds.** Each scenario has a `base_seed`; Monte Carlo replicate `i` uses seed `base_seed * 1_000_000 + i`.
 * **Replicate reproducibility.** Re-running a replicate reproduces it exactly, which is also how Figure 2 panels and the SI worked example are rebuilt.
 * **Run hash.** `metadata.compute_run_hash` is a SHA-256 digest, truncated to the first 16 hex characters, over the resolved configuration bundle plus the code version and seed family. The same configs and code map to the same hash; changing any config changes the hash.
-* **No overwrite by default.** `run_all.py` writes to `outputs/<run_hash>/`. A new run writes a new directory unless `--overwrite` is passed.
-* **Latest run pointer.** `outputs/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution, including smoke runs. The locked manuscript run is always identified explicitly by the frozen run hash above.
+* **No overwrite by default.** `run_all.py` writes to a deterministic `<outdir>/<run_hash>/` directory. Repeating the same configuration, seed family and package version targets the same directory and is refused by default. Changed configurations produce changed hashes. Use `--outdir` for independent reproduction, `--resume` for incomplete runs, and `--overwrite` only for deliberate clean regeneration.
+* **Latest run pointer.** `<outdir>/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution within that output root, including smoke runs. The locked manuscript run is always identified explicitly by the frozen run hash above.
 
 ## Output layout
 
@@ -202,10 +208,16 @@ python scripts/verify_outputs.py --smoke
 pytest -q
 ```
 
-To reproduce the full manuscript benchmark, run:
+To rerun the full manuscript benchmark without touching the locked manuscript
+output directory, run:
 
 ```bash
-python scripts/run_all.py --all
+python scripts/run_all.py --all --outdir outputs_reproduced
+```
+
+To verify the locked manuscript package included in this repository, run:
+
+```bash
 python scripts/verify_outputs.py --run-hash 9d2658d6d147de10 --strict-manuscript
 ```
 

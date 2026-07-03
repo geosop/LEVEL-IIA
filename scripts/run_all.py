@@ -16,6 +16,7 @@ given.
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -48,17 +49,43 @@ def load_cfg(path: Path):
         return yaml.safe_load(fh)
 
 
+def assert_safe_run_dir(run_dir: Path, out_root: Path) -> None:
+    """Refuse destructive operations outside the declared output root."""
+    rd = run_dir.resolve()
+    root = out_root.resolve()
+
+    if rd == root:
+        raise RuntimeError(f"Refusing to delete the output root itself: {rd}")
+    if root not in rd.parents:
+        raise RuntimeError(f"Refusing to delete path outside output root: {rd}")
+    if rd.exists() and not rd.is_dir():
+        raise RuntimeError(f"Refusing to overwrite non-directory path: {rd}")
+
+
+def atomic_write_text(path: Path, text: str) -> None:
+    """Atomically replace a small text file on the same filesystem."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true", help="fast low-M run")
     ap.add_argument("--all", action="store_true", help="full manuscript run")
     ap.add_argument("--config", default=None, help="run a single config file")
     ap.add_argument("--M", type=int, default=None, help="override Monte Carlo M")
-    ap.add_argument("--overwrite", action="store_true")
-    ap.add_argument(
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="delete an existing deterministic run directory and regenerate it",
+    )
+    mode.add_argument(
         "--resume",
         action="store_true",
-        help="skip scenarios already saved in the run directory",
+        help="continue an incomplete deterministic run directory",
     )
     ap.add_argument("--no-sweep", action="store_true")
     ap.add_argument("--outdir", default=str(ROOT / "outputs"))
@@ -79,10 +106,34 @@ def main():
     cfgs = {n: load_cfg(ROOT / "configs" / f"{n}.yaml") for n in names}
     config_bundle = {n: cfgs[n] for n in names}
     run_hash = MD.compute_run_hash(config_bundle, f"{seed_family}:M={M}")
-    run_dir = Path(args.outdir) / run_hash
+    out_root = Path(args.outdir).resolve()
+    run_dir = out_root / run_hash
 
-    if run_dir.exists() and not args.overwrite:
-        print(f"[run_all] run directory exists: {run_dir} (use --overwrite)")
+    if run_dir.exists():
+        if args.overwrite:
+            assert_safe_run_dir(run_dir, out_root)
+            shutil.rmtree(run_dir)
+            print(f"[run_all] removed existing run directory: {run_dir}")
+        elif args.resume:
+            if (run_dir / "metadata" / "run_metadata.json").exists():
+                raise FileExistsError(
+                    f"Completed run directory already exists: {run_dir}. "
+                    "Use verify_outputs.py to check it, pass --overwrite to regenerate it, "
+                    "or use --outdir to write a separate reproduction run."
+                )
+            print(f"[run_all] resuming incomplete run directory: {run_dir}")
+        else:
+            raise FileExistsError(
+                f"Run directory already exists: {run_dir}. "
+                "This deterministic run is locked by default. "
+                "Pass --resume to continue an incomplete run, --overwrite to regenerate "
+                "it from scratch, or --outdir to write a separate reproduction run."
+            )
+    elif args.resume:
+        raise FileNotFoundError(
+            f"Cannot resume because the deterministic run directory does not exist: "
+            f"{run_dir}. Run without --resume to create it."
+        )
 
     for sub in ("raw", "summary", "tables", "figures", "metadata"):
         (run_dir / sub).mkdir(parents=True, exist_ok=True)
@@ -188,8 +239,7 @@ def main():
             encoding="utf-8",
         ) as fh:
             json.dump(meta, fh, indent=2)
-        with (Path(args.outdir) / "LATEST_RUN.txt").open("w", encoding="utf-8") as fh:
-            fh.write(run_hash + "\n")
+        atomic_write_text(out_root / "LATEST_RUN.txt", run_hash + "\n")
         print(f"[run_all] ALL DONE. run_hash={run_hash}\n[run_all] outputs in {run_dir}")
     else:
         remaining = [
