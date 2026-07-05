@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cri_leveliia import comparator, dgp  # noqa: E402
-from cri_leveliia.formatting import count_rate_display  # noqa: E402
+from cri_leveliia.formatting import count_rate_display_4  # noqa: E402
 from cri_leveliia.benchmarks import _replicate_seed, pipeline_once  # noqa: E402
 
 
@@ -120,7 +120,7 @@ def _count(summary: dict, count_key: str, rate_key: str) -> int:
 def _count_rate(summary: dict, count_key: str, rate_key: str) -> str:
     M = _as_int(summary.get("M", 0))
     n = _count(summary, count_key, rate_key)
-    return count_rate_display(n, M)
+    return count_rate_display_4(n, M)
 
 
 def _panel_objects(cfg: dict, base_seed: int, replicate: int) -> dict:
