@@ -76,3 +76,21 @@ outputs/71d6a56c10a1c0ed/summary/false_adequacy_rates.csv
   `configs/collider_selection.yaml`) so that the manufactured slope is material;
   this is the configuration that isolates the endpoint-by-delay interaction
   diagnostic as the operative guard. All other scenarios use kappa = 2.
+
+### Adequacy operating-characteristic sweep
+
+To reproduce the magnitude-indexed D2 certificate, run:
+
+~~~powershell
+$RunHash = (Get-Content outputs\LATEST_RUN.txt).Trim()
+.\.venv312\Scripts\python.exe scripts\make_adequacy_operating_characteristic.py `
+  --run-hash $RunHash `
+  --M 1200 `
+  --deltas "20,30,40,50,60,75,90" `
+  --overwrite
+~~~
+
+The resulting CSV and LaTeX table are archived under
+`outputs/<run_hash>/summary/` and `outputs/<run_hash>/tables/`. The certificate
+uses the monotone Wilson upper-bound envelope across all evaluated magnitudes at
+or above the reported threshold.
