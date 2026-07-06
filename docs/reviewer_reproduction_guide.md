@@ -39,6 +39,20 @@ python scripts/make_tables.py  --run-hash $RUN_HASH
 python scripts/verify_outputs.py --run-hash $RUN_HASH
 ```
 
+## Certified manuscript run
+
+The certified manuscript run is `71d6a56c10a1c0ed`. It uses `M=1200` Monte Carlo
+datasets per scenario, `P=24` participants, five assigned-delay bins, and
+`n/bin=24` planned trials per assigned-delay bin.
+
+Affirmative-null certification requires both the false-adequacy point estimate
+and the Wilson 95% upper confidence bound to be at or below `p_FA_max = 0.05`.
+
+The certified false-adequacy file is:
+
+```text
+outputs/71d6a56c10a1c0ed/summary/false_adequacy_rates.csv
+```
 ## 4. What to inspect
 
 * `summary/operating_characteristics.csv` underlies the SI operating-characteristics

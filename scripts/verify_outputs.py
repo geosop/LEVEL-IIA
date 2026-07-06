@@ -2,9 +2,9 @@
 """Verify benchmark output invariants and operating-characteristic thresholds.
 
 Usage:
-    python scripts/verify_outputs.py --run-hash 9d2658d6d147de10
+    python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed
     python scripts/verify_outputs.py --smoke
-    python scripts/verify_outputs.py --run-hash 9d2658d6d147de10 --strict-manuscript
+    python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed --strict-manuscript
 
 The verifier has two layers.
 
@@ -36,6 +36,8 @@ import sys
 ROOT_FOR_IMPORT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT_FOR_IMPORT / "src"))
 from cri_leveliia.formatting import rate_display  # noqa: E402
+sys.path.insert(0, str(ROOT_FOR_IMPORT / "scripts"))
+from make_false_adequacy_rates import P_FA_MAX  # noqa: E402
 
 import pandas as pd
 
@@ -61,6 +63,12 @@ OUTCOME_COUNT_RATE_PAIRS = [
     ("diagnostic_failure_n", "diagnostic_failure_rate"),
     ("opposite_direction_n", "opposite_direction_rate"),
     ("inconclusive_n", "inconclusive_rate"),
+]
+
+
+CERTIFICATION_SCENARIOS = [
+    "injected_residual",
+    "opposite_direction",
 ]
 
 
@@ -95,71 +103,56 @@ CHECKS = [
 ]
 
 
-MANUSCRIPT_LOCKED_COUNTS = {
-    "clean_null": {
-        "M": 1200,
-        "support_n": 0,
-        "selection_limited_n": 9,
-        "diagnostic_failure_n": 1,
-        "null_n": 1190,
-        "opposite_direction_n": 0,
-        "inconclusive_n": 0,
-    },
-    "injected_residual": {
-        "M": 1200,
-        "support_n": 1113,
-        "selection_limited_n": 10,
-        "diagnostic_failure_n": 2,
-        "null_n": 75,
-        "opposite_direction_n": 0,
-        "inconclusive_n": 0,
-    },
-    "leakage": {
-        "M": 1200,
-        "support_n": 0,
-        "selection_limited_n": 0,
-        "diagnostic_failure_n": 1200,
-        "null_n": 0,
-        "opposite_direction_n": 0,
-        "inconclusive_n": 0,
-    },
-    "selection_standard": {
-        "M": 1200,
-        "support_n": 0,
-        "selection_limited_n": 1197,
-        "diagnostic_failure_n": 3,
-        "null_n": 0,
-        "opposite_direction_n": 0,
-        "inconclusive_n": 0,
-    },
-    "collider_selection": {
-        "M": 1200,
-        "support_n": 0,
-        "selection_limited_n": 1197,
-        "diagnostic_failure_n": 3,
-        "null_n": 0,
-        "opposite_direction_n": 0,
-        "inconclusive_n": 0,
-    },
-    "adversarial_null": {
-        "M": 1200,
-        "support_n": 0,
-        "selection_limited_n": 6,
-        "diagnostic_failure_n": 0,
-        "null_n": 1194,
-        "opposite_direction_n": 0,
-        "inconclusive_n": 0,
-    },
-    "opposite_direction": {
-        "M": 1200,
-        "support_n": 0,
-        "selection_limited_n": 11,
-        "diagnostic_failure_n": 3,
-        "null_n": 60,
-        "opposite_direction_n": 1126,
-        "inconclusive_n": 0,
-    },
-}
+MANUSCRIPT_LOCKED_COUNTS = {'clean_null': {'M': 1200,
+                'support_n': 0,
+                'selection_limited_n': 5,
+                'diagnostic_failure_n': 3,
+                'null_n': 1192,
+                'opposite_direction_n': 0,
+                'inconclusive_n': 0},
+ 'injected_residual': {'M': 1200,
+                       'support_n': 1191,
+                       'selection_limited_n': 7,
+                       'diagnostic_failure_n': 2,
+                       'null_n': 0,
+                       'opposite_direction_n': 0,
+                       'inconclusive_n': 0},
+ 'leakage': {'M': 1200,
+             'support_n': 0,
+             'selection_limited_n': 0,
+             'diagnostic_failure_n': 1200,
+             'null_n': 0,
+             'opposite_direction_n': 0,
+             'inconclusive_n': 0},
+ 'selection_standard': {'M': 1200,
+                        'support_n': 0,
+                        'selection_limited_n': 1200,
+                        'diagnostic_failure_n': 0,
+                        'null_n': 0,
+                        'opposite_direction_n': 0,
+                        'inconclusive_n': 0},
+ 'collider_selection': {'M': 1200,
+                        'support_n': 0,
+                        'selection_limited_n': 1199,
+                        'diagnostic_failure_n': 1,
+                        'null_n': 0,
+                        'opposite_direction_n': 0,
+                        'inconclusive_n': 0},
+ 'adversarial_null': {'M': 1200,
+                      'support_n': 0,
+                      'selection_limited_n': 6,
+                      'diagnostic_failure_n': 1,
+                      'null_n': 1193,
+                      'opposite_direction_n': 0,
+                      'inconclusive_n': 0},
+ 'opposite_direction': {'M': 1200,
+                        'support_n': 0,
+                        'selection_limited_n': 10,
+                        'diagnostic_failure_n': 3,
+                        'null_n': 0,
+                        'opposite_direction_n': 1187,
+                        'inconclusive_n': 0}}
+
 
 
 def _latest(outdir: str | Path) -> str | None:
@@ -328,7 +321,7 @@ def _check_operating_thresholds(df_indexed: pd.DataFrame, smoke: bool, errors: l
 
 
 def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, errors: list[str]) -> None:
-    expected_hash = "9d2658d6d147de10"
+    expected_hash = "71d6a56c10a1c0ed"
     if run_hash != expected_hash:
         _fail(
             errors,
@@ -357,7 +350,7 @@ def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, err
                 )
 
     if not errors:
-        _ok("strict manuscript counts match run 9d2658d6d147de10")
+        _ok("strict manuscript counts match run 71d6a56c10a1c0ed")
 
 
 def _check_false_adequacy_rates(
@@ -366,6 +359,7 @@ def _check_false_adequacy_rates(
     run_hash: str,
     smoke: bool,
     errors: list[str],
+    require_certification: bool = True,
 ) -> None:
     """Check derived false-adequacy CSV against operating_characteristics.csv."""
     target_scenarios = ["injected_residual", "opposite_direction"]
@@ -392,6 +386,8 @@ def _check_false_adequacy_rates(
         "wilson95_high",
         "run_hash",
     }
+    if require_certification:
+        required.update({"p_fa_max", "certification_rule", "certification_pass"})
     missing = sorted(required.difference(fa.columns))
     if missing:
         _fail(errors, f"false-adequacy file missing columns: {', '.join(missing)}")
@@ -429,14 +425,33 @@ def _check_false_adequacy_rates(
             )
         if str(derived["run_hash"]) != str(run_hash):
             _fail(errors, f"{scen}: false-adequacy run_hash mismatch")
-        if not (
-            0.0
-            <= float(derived["wilson95_low"])
-            <= observed_rate
-            <= float(derived["wilson95_high"])
-            <= 1.0
-        ):
+        wilson_low = float(derived["wilson95_low"])
+        wilson_high = float(derived["wilson95_high"])
+        if not (0.0 <= wilson_low <= observed_rate <= wilson_high <= 1.0):
             _fail(errors, f"{scen}: Wilson interval does not contain false-adequacy rate")
+
+        if require_certification and scen in CERTIFICATION_SCENARIOS:
+            p_fa_max = float(derived.get("p_fa_max", P_FA_MAX))
+            passed = (observed_rate <= p_fa_max) and (wilson_high <= p_fa_max)
+            recorded = str(derived.get("certification_pass", "")).strip().lower()
+            if recorded and recorded not in {"true", "false"}:
+                _fail(errors, f"{scen}: certification_pass has invalid value {recorded!r}")
+            elif recorded and ((recorded == "true") != passed):
+                _fail(errors, f"{scen}: certification_pass={recorded}, expected {str(passed).lower()}")
+
+            if passed:
+                _ok(
+                    f"{scen}: false-adequacy certification PASS "
+                    f"rate={observed_rate:.6f}, Wilson95_high={wilson_high:.6f}, "
+                    f"p_FA_max={p_fa_max:.6f}"
+                )
+            else:
+                _fail(
+                    errors,
+                    f"{scen}: false-adequacy certification FAIL: "
+                    f"rate={observed_rate:.6f}, Wilson95_high={wilson_high:.6f}, "
+                    f"p_FA_max={p_fa_max:.6f}"
+                )
 
     if not errors:
         _ok("derived false-adequacy rates match null_n/M for material-departure scenarios")
@@ -448,9 +463,14 @@ def main() -> None:
     ap.add_argument("--run-hash", default=None)
     ap.add_argument("--outdir", default=str(ROOT / "outputs"))
     ap.add_argument(
+        "--skip-certification",
+        action="store_true",
+        help="verify internal invariants without enforcing false-adequacy certification",
+    )
+    ap.add_argument(
         "--strict-manuscript",
         action="store_true",
-        help="also require exact outcome counts for manuscript run 9d2658d6d147de10",
+        help="also require exact outcome counts for manuscript run 71d6a56c10a1c0ed",
     )
     args = ap.parse_args()
 
@@ -481,7 +501,14 @@ def main() -> None:
     df_indexed = df.set_index("scenario", drop=False)
     _check_operating_thresholds(df_indexed, args.smoke, errors)
     run_dir = Path(args.outdir) / run_hash
-    _check_false_adequacy_rates(run_dir, df_indexed, run_hash, args.smoke, errors)
+    _check_false_adequacy_rates(
+        run_dir,
+        df_indexed,
+        run_hash,
+        args.smoke,
+        errors,
+        require_certification=(not args.smoke and not args.skip_certification),
+    )
 
     if args.strict_manuscript:
         _check_locked_manuscript_counts(df_indexed, run_hash, errors)

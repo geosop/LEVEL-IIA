@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Derive false-adequacy rates from operating-characteristics outputs.
 
 A false-adequacy classification occurs when a material endpoint-level departure
@@ -16,8 +16,9 @@ from pathlib import Path
 from typing import Optional
 
 
-DEFAULT_FROZEN_RUN_HASH = "9d2658d6d147de10"
+DEFAULT_FROZEN_RUN_HASH = "71d6a56c10a1c0ed"
 Z_95 = 1.959963984540054
+P_FA_MAX = 0.05
 
 
 TARGET_SCENARIOS = {
@@ -43,6 +44,9 @@ OUTPUT_COLUMNS = [
     "false_adequacy_rate",
     "wilson95_low",
     "wilson95_high",
+    "p_fa_max",
+    "certification_rule",
+    "certification_pass",
     "run_hash",
     "source_csv",
 ]
@@ -105,6 +109,9 @@ def derive_false_adequacy_rows(csv_path: Path) -> list[dict[str, str]]:
                 "false_adequacy_rate": _fmt_rate(rate),
                 "wilson95_low": _fmt_rate(low),
                 "wilson95_high": _fmt_rate(high),
+                "p_fa_max": _fmt_rate(P_FA_MAX),
+                "certification_rule": "point_estimate_and_wilson95_high_le_p_fa_max",
+                "certification_pass": str((rate <= P_FA_MAX) and (high <= P_FA_MAX)).lower(),
                 "run_hash": run_hash,
                 "source_csv": source_label,
             }

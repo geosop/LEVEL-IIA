@@ -2,7 +2,7 @@ name: leakage
 generator: forward_only_with_leak
 base_seed: 103
 n_participants: 24
-trials_per_bin: 12
+trials_per_bin: 24
 delay_grid_ms: [0, 5, 10, 15, 20]
 foreperiod_grid_s: [0.4, 0.8, 1.2, 1.6, 2.0]
 sigma_resid: 1.0

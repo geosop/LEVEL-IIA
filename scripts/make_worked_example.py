@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-RUN_HASH = "9d2658d6d147de10"
+RUN_HASH = "71d6a56c10a1c0ed"
 ROOT = Path(__file__).resolve().parents[1]
 RUN_DIR = ROOT / "outputs" / RUN_HASH
 OUT = ROOT / "CRI_Perspective" / "Tables" / "worked_decision_example.tex"

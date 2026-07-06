@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 
-DEFAULT_FROZEN_RUN_HASH = "9d2658d6d147de10"
+DEFAULT_FROZEN_RUN_HASH = "71d6a56c10a1c0ed"
 
 NumberLike = Union[str, int, float, Decimal]
 ColumnSpec = Tuple[str, str, str]
