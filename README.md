@@ -6,43 +6,53 @@ This repository qualifies the locked Level II-A analysis pipeline on **simulated
 
 Every benchmark number quoted in the Perspective, the electronic supplementary material, Figure 2, and the manuscript tables is produced from the code and recorded under a run hash.
 
-## Locked manuscript run
+## Locked manuscript and certification run
 
-The manuscript and electronic supplementary material use the frozen full benchmark run
+The manuscript and electronic supplementary material use the certified full
+benchmark run
 
 ```text
-run hash: 9d2658d6d147de10
+run hash: 71d6a56c10a1c0ed
 M:        1200 Monte Carlo datasets per scenario
 P:        24 participants
+n/bin:    24 planned trials per assigned-delay bin
 support:  [0, 20] ms
 ```
 
 The corresponding output directory is
 
 ```text
-outputs/9d2658d6d147de10/
+outputs/71d6a56c10a1c0ed/
 ```
 
-The canonical numeric source for the operating characteristics is
+The canonical numeric source for the certified operating characteristics is
 
 ```text
-outputs/9d2658d6d147de10/summary/operating_characteristics.csv
+outputs/71d6a56c10a1c0ed/summary/operating_characteristics.csv
 ```
 
 The false-adequacy rates under material endpoint-level departures are derived
-from the same frozen operating-characteristics CSV and written as
+from the same certified operating-characteristics CSV and written as
 
 ```text
-outputs/9d2658d6d147de10/summary/false_adequacy_rates.csv
+outputs/71d6a56c10a1c0ed/summary/false_adequacy_rates.csv
 ```
 
-The manuscript-facing LaTeX tables are generated from that CSV as split design and outcome tables:
+An operating point licenses affirmative-null certification only if the
+false-adequacy point estimate and the Wilson 95% upper confidence bound are both
+at or below `p_FA_max = 0.05`.
+
+The manuscript-facing LaTeX tables are generated from the certified CSV as split
+design and outcome tables:
 
 ```text
-outputs/9d2658d6d147de10/tables/operating_characteristics_design.tex
-outputs/9d2658d6d147de10/tables/operating_characteristics_outcomes.tex
+outputs/71d6a56c10a1c0ed/tables/operating_characteristics_design.tex
+outputs/71d6a56c10a1c0ed/tables/operating_characteristics_outcomes.tex
 ```
 
+The earlier lower-retained-trial reference run is retained only as a
+pipeline-architecture demonstration and is not used to license affirmative-null
+certification.
 ## What the benchmark establishes
 
 The locked pipeline consists of:
@@ -117,16 +127,16 @@ python scripts/run_all.py --all --outdir outputs_reproduced --resume
 Verify the locked manuscript run:
 
 ```bash
-python scripts/verify_outputs.py --run-hash 9d2658d6d147de10
-python scripts/verify_outputs.py --run-hash 9d2658d6d147de10 --strict-manuscript
+python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed
+python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed --strict-manuscript
 ```
 
 Regenerate manuscript-facing artefacts from the locked run:
 
 ```bash
-python scripts/make_figure2.py --run-hash 9d2658d6d147de10
-python scripts/make_split_oc_tables.py --run-hash 9d2658d6d147de10
-python scripts/make_tables.py --run-hash 9d2658d6d147de10
+python scripts/make_figure2.py --run-hash 71d6a56c10a1c0ed
+python scripts/make_split_oc_tables.py --run-hash 71d6a56c10a1c0ed
+python scripts/make_tables.py --run-hash 71d6a56c10a1c0ed
 python scripts/make_worked_example.py
 ```
 
@@ -164,9 +174,12 @@ Second, it checks operating-characteristic qualification thresholds:
 * leakage, selection and collider failures are blocked;
 * opposite-direction injections are not counted as directional support;
 * false-adequacy rates under material endpoint-level departures equal the
-  corresponding forward-only adequate counts divided by `M`.
+  corresponding forward-only adequate counts divided by `M`;
+* affirmative-null certification requires both the false-adequacy point
+  estimate and the Wilson 95% upper confidence bound to be at or below
+  `p_FA_max = 0.05`.
 
-The optional `--strict-manuscript` flag checks the exact final-outcome counts used in the manuscript for run `9d2658d6d147de10`. This flag is intended for release checks of the manuscript run, not for arbitrary exploratory runs.
+The optional `--strict-manuscript` flag checks the exact final-outcome counts used in the manuscript for run `71d6a56c10a1c0ed`. This flag is intended for release checks of the manuscript run, not for arbitrary exploratory runs.
 
 ## Seed and run-hash policy
 
@@ -228,7 +241,7 @@ python scripts/run_all.py --all --outdir outputs_reproduced
 To verify the locked manuscript package included in this repository, run:
 
 ```bash
-python scripts/verify_outputs.py --run-hash 9d2658d6d147de10 --strict-manuscript
+python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed --strict-manuscript
 ```
 
 If a new full run is generated for a later manuscript revision, update the manuscript, SI, figure captions, tables, data accessibility statement and release notes to point to the new run hash.

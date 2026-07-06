@@ -27,7 +27,7 @@ import pandas as pd
 
 # Current frozen manuscript/SI benchmark run. Writers also infer the run hash
 # from paths under outputs/<run_hash>/tables/ and allow explicit override.
-DEFAULT_FROZEN_RUN_HASH = "9d2658d6d147de10"
+DEFAULT_FROZEN_RUN_HASH = "71d6a56c10a1c0ed"
 
 
 # Ordered columns for the realised operating-characteristics table (SI S9).

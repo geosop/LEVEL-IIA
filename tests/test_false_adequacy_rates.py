@@ -1,4 +1,4 @@
-﻿import csv
+import csv
 import sys
 from pathlib import Path
 
@@ -42,3 +42,7 @@ def test_false_adequacy_rates_are_derived_from_null_counts(tmp_path):
     assert by_scenario["injected_residual"]["false_adequacy_rate"] == "0.062500"
     assert by_scenario["opposite_direction"]["false_adequacy_n"] == "60"
     assert by_scenario["opposite_direction"]["false_adequacy_rate"] == "0.050000"
+    assert by_scenario["injected_residual"]["p_fa_max"] == "0.050000"
+    assert by_scenario["injected_residual"]["certification_rule"] == "point_estimate_and_wilson95_high_le_p_fa_max"
+    assert by_scenario["injected_residual"]["certification_pass"] == "false"
+    assert by_scenario["opposite_direction"]["certification_pass"] == "false"
