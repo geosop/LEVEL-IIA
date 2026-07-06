@@ -254,3 +254,30 @@ A Zenodo archive and DOI will be minted from the first public GitHub release. Af
 
 The numbers reported are operating characteristics of a software pipeline on simulated data. They establish that the locked decision procedure behaves as designed under the declared synthetic generators. They are not empirical evidence about human EEG and not a mechanism claim.
 
+## Adequacy operating-characteristic sweep
+
+The D2 affirmative-null certificate is magnitude-indexed. The seven-scenario
+benchmark run `71d6a56c10a1c0ed` reports the displayed `+/-60 microV s^-1`
+false-adequacy points. The adequacy operating characteristic is generated
+separately by:
+
+~~~powershell
+$RunHash = (Get-Content outputs\LATEST_RUN.txt).Trim()
+.\.venv312\Scripts\python.exe scripts\make_adequacy_operating_characteristic.py `
+  --run-hash $RunHash `
+  --M 1200 `
+  --deltas "20,30,40,50,60,75,90" `
+  --overwrite
+~~~
+
+This writes:
+
+- `outputs/<run_hash>/summary/adequacy_operating_characteristic.csv`
+- `outputs/<run_hash>/tables/adequacy_operating_characteristic.tex`
+- `outputs/<run_hash>/metadata/adequacy_sweep_metadata.json`
+- copied manuscript tables under `CRI_Perspective/Tables/` and `manuscript/tables/`
+
+The certified magnitude is defined from the monotone Wilson upper-bound envelope:
+for a given direction, all evaluated magnitudes at or above the certified
+magnitude must have false-adequacy point estimate and Wilson 95% upper bound at
+or below `p_FA_max = 0.05`.
