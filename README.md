@@ -1,15 +1,28 @@
 # Level II-A post-endpoint randomisation benchmark
 
-Reproducible benchmark pipeline for the Perspective **"Testing past-adapted accounts of anticipatory EEG by post-endpoint randomisation."**
+Reproducible benchmark pipeline for the Level II-A post-endpoint randomisation
+operating-characteristic study.
 
-This repository qualifies the locked Level II-A analysis pipeline on **simulated data with known generating processes**. It is a design-stage falsification and validation framework. It does **not** analyse human EEG, and it makes **no mechanism claim**.
+This repository contains executable code, scenario configurations, synthetic-data
+generators, tests, and generated benchmark artefacts used to reproduce the
+software-validation results. The Perspective manuscript and Supplementary
+Information source files are maintained outside this repository and are not
+included in the GitHub/Zenodo software archive.
 
-Every benchmark number quoted in the Perspective, the electronic supplementary material, Figure 2, and the manuscript tables is produced from the code and recorded under a run hash.
+This repository is therefore a code-and-benchmark companion, not a manuscript
+source package. It can be cited as the reproducibility source for benchmark
+operating characteristics reported in an external manuscript, provided the cited
+run hash is stated explicitly.
 
-## Locked manuscript and certification run
+## Certified benchmark run
 
-The manuscript and electronic supplementary material use the certified full
-benchmark run
+External manuscripts may cite a certified full benchmark run. The certified run
+is identified by its run hash, Monte Carlo settings, and generated output
+directory. Because the manuscript and SI source files are maintained outside this
+repository, the run hash is the reproducibility anchor for benchmark numbers, not
+a pointer to manuscript source files.
+
+The previous certified full benchmark run retained for historical comparison is
 
 ```text
 run hash: 71d6a56c10a1c0ed
@@ -18,6 +31,13 @@ P:        24 participants
 n/bin:    24 planned trials per assigned-delay bin
 support:  [0, 20] ms
 ```
+
+> **Revision note.** The current code includes a sequential martingale/e-value
+> route for carryover-sensitive scenarios. A new full certified run should be
+> generated before the external manuscript is finalised. Until that regeneration
+> is performed, run `71d6a56c10a1c0ed` should be treated as the previous
+> certification run, not as the final certification run for the
+> sequential-evalue revision.
 
 The corresponding output directory is
 
@@ -61,7 +81,9 @@ The locked pipeline consists of:
 * label-blind cross-fitted forward-only comparator;
 * frozen residual array;
 * participant-level slope estimand;
-* plus-one randomisation test;
+* route-specific calibration:
+  * `assignment_isolation`: plus-one randomisation under endpoint-array invariance;
+  * `sequential_evalue`: martingale/e-value calibration for carryover-sensitive scenarios;
 * studentised participant bootstrap-t upper bound;
 * materiality floor;
 * audit battery;
@@ -78,10 +100,27 @@ The pipeline is required to behave as designed under seven scenarios.
 | `leakage`            | Temporal-leakage audit fires and blocks support                             |
 | `selection_standard` | Retention audit or selection route blocks support                           |
 | `collider_selection` | Endpoint-by-delay collider is classified selection-limited, never supported |
-| `adversarial_null`   | False-support control under hard forward-only nuisance structure            |
+| `adversarial_null`   | False-support control under hard forward-only nuisance structure, including carryover, using the sequential e-value route |
 | `opposite_direction` | Positive injection is classified opposite-direction, not support            |
 
 The benchmark establishes operating characteristics of the software decision pipeline on simulated data. It is not empirical evidence for an anticipatory EEG effect.
+
+## Inference routes
+
+The benchmark distinguishes two locked inferential routes.
+
+`assignment_isolation` is the finite-sample randomisation route. It holds the
+frozen endpoint or residual array fixed under admissible reassignment and is used
+only when endpoint-array invariance is justified. Its calibration is the plus-one
+assignment randomisation test.
+
+`sequential_evalue` is the carryover-sensitive route. It uses current-trial
+assignment increments under the declared conditional scheduler law and calibrates
+the resulting score by a predeclared martingale/e-value construction. It does
+not condition on a globally reassigned endpoint array and does not regenerate
+counterfactual endpoint trajectories.
+
+The `adversarial_null` scenario uses `sequential_evalue`.
 
 ## Install
 
@@ -131,7 +170,7 @@ python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed
 python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed --strict-manuscript
 ```
 
-Regenerate manuscript-facing artefacts from the locked run:
+Regenerate benchmark tables and figures for external manuscript use from the locked run:
 
 ```bash
 python scripts/make_figure2.py --run-hash 71d6a56c10a1c0ed
@@ -169,7 +208,8 @@ First, it checks exact internal invariants:
 
 Second, it checks operating-characteristic qualification thresholds:
 
-* false-support control under clean and adversarial forward-only nulls;
+* false-support control under the clean assignment-isolation null and the
+  adversarial carryover-sensitive forward-only null;
 * recovery under injected negative residual;
 * leakage, selection and collider failures are blocked;
 * opposite-direction injections are not counted as directional support;
@@ -205,13 +245,19 @@ outputs/<run_hash>/
   metadata/run_metadata.json
 ```
 
-Manuscript-facing generated artefacts are copied or written under:
+Generated benchmark artefacts can be exported for an external manuscript workflow.
+Some helper scripts may copy generated tables or figures into local manuscript
+workspaces such as:
 
 ```text
 manuscript/tables/
 CRI_Perspective/Tables/
 CRI_Perspective/Figures/
 ```
+
+These local manuscript workspaces are not part of the public manuscript source
+package. The Perspective manuscript and SI `.tex` files remain outside this
+repository and outside the Zenodo software archive.
 
 The SI worked example is generated from the locked representative-index file and the frozen per-replicate rows.
 
@@ -248,7 +294,11 @@ If a new full run is generated for a later manuscript revision, update the manus
 
 ## Archival
 
-A Zenodo archive and DOI will be minted from the first public GitHub release. After release archiving, the DOI will be added here and to the repository citation metadata.
+A Zenodo archive and DOI will be minted from the public GitHub release of this
+benchmark repository. The archive covers the code, configurations, tests,
+synthetic generators, and benchmark artefacts included in the release. It does
+not include the Perspective manuscript or Supplementary Information source
+files, which are maintained separately.
 
 ## Honesty note
 
