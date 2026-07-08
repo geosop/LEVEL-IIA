@@ -1,4 +1,4 @@
-# Reviewer reproduction guide
+﻿# Reviewer reproduction guide
 
 ## 1. Environment
 
@@ -41,7 +41,7 @@ python scripts/verify_outputs.py --run-hash $RUN_HASH
 
 ## Certified manuscript run
 
-The certified manuscript run is `71d6a56c10a1c0ed`. It uses `M=1200` Monte Carlo
+The certified manuscript run is `f930a51c1c594275`. It uses `M=1200` Monte Carlo
 datasets per scenario, `P=24` participants, five assigned-delay bins, and
 `n/bin=24` planned trials per assigned-delay bin.
 
@@ -51,7 +51,7 @@ and the Wilson 95% upper confidence bound to be at or below `p_FA_max = 0.05`.
 The certified false-adequacy file is:
 
 ```text
-outputs/71d6a56c10a1c0ed/summary/false_adequacy_rates.csv
+outputs/f930a51c1c594275/summary/false_adequacy_rates.csv
 ```
 ## 4. What to inspect
 
@@ -94,3 +94,4 @@ The resulting CSV and LaTeX table are archived under
 `outputs/<run_hash>/summary/` and `outputs/<run_hash>/tables/`. The certificate
 uses the monotone Wilson upper-bound envelope across all evaluated magnitudes at
 or above the reported threshold.
+

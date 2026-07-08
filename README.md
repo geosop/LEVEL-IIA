@@ -1,4 +1,4 @@
-# Level II-A post-endpoint randomisation benchmark
+﻿# Level II-A post-endpoint randomisation benchmark
 
 Reproducible benchmark pipeline for the Level II-A post-endpoint randomisation
 operating-characteristic study.
@@ -22,40 +22,35 @@ directory. Because the manuscript and SI source files are maintained outside thi
 repository, the run hash is the reproducibility anchor for benchmark numbers, not
 a pointer to manuscript source files.
 
-The previous certified full benchmark run retained for historical comparison is
+The certified full benchmark run for the current sequential-evalue revision is
 
 ```text
-run hash: 71d6a56c10a1c0ed
+run hash: f930a51c1c594275
 M:        1200 Monte Carlo datasets per scenario
 P:        24 participants
 n/bin:    24 planned trials per assigned-delay bin
+R:        999 randomisation draws where assignment-isolation calibration is used
+B:        999 participant bootstrap replicates
 support:  [0, 20] ms
 ```
-
-> **Revision note.** The current code includes a sequential martingale/e-value
-> route for carryover-sensitive scenarios. A new full certified run should be
-> generated before the external manuscript is finalised. Until that regeneration
-> is performed, run `71d6a56c10a1c0ed` should be treated as the previous
-> certification run, not as the final certification run for the
-> sequential-evalue revision.
 
 The corresponding output directory is
 
 ```text
-outputs/71d6a56c10a1c0ed/
+outputs/f930a51c1c594275/
 ```
 
 The canonical numeric source for the certified operating characteristics is
 
 ```text
-outputs/71d6a56c10a1c0ed/summary/operating_characteristics.csv
+outputs/f930a51c1c594275/summary/operating_characteristics.csv
 ```
 
 The false-adequacy rates under material endpoint-level departures are derived
 from the same certified operating-characteristics CSV and written as
 
 ```text
-outputs/71d6a56c10a1c0ed/summary/false_adequacy_rates.csv
+outputs/f930a51c1c594275/summary/false_adequacy_rates.csv
 ```
 
 An operating point licenses affirmative-null certification only if the
@@ -66,8 +61,8 @@ The manuscript-facing LaTeX tables are generated from the certified CSV as split
 design and outcome tables:
 
 ```text
-outputs/71d6a56c10a1c0ed/tables/operating_characteristics_design.tex
-outputs/71d6a56c10a1c0ed/tables/operating_characteristics_outcomes.tex
+outputs/f930a51c1c594275/tables/operating_characteristics_design.tex
+outputs/f930a51c1c594275/tables/operating_characteristics_outcomes.tex
 ```
 
 The earlier lower-retained-trial reference run is retained only as a
@@ -166,16 +161,16 @@ python scripts/run_all.py --all --outdir outputs_reproduced --resume
 Verify the locked manuscript run:
 
 ```bash
-python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed
-python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed --strict-manuscript
+python scripts/verify_outputs.py --run-hash f930a51c1c594275
+python scripts/verify_outputs.py --run-hash f930a51c1c594275 --strict-manuscript
 ```
 
 Regenerate benchmark tables and figures for external manuscript use from the locked run:
 
 ```bash
-python scripts/make_figure2.py --run-hash 71d6a56c10a1c0ed
-python scripts/make_split_oc_tables.py --run-hash 71d6a56c10a1c0ed
-python scripts/make_tables.py --run-hash 71d6a56c10a1c0ed
+python scripts/make_figure2.py --run-hash f930a51c1c594275
+python scripts/make_split_oc_tables.py --run-hash f930a51c1c594275
+python scripts/make_tables.py --run-hash f930a51c1c594275
 python scripts/make_worked_example.py
 ```
 
@@ -219,7 +214,7 @@ Second, it checks operating-characteristic qualification thresholds:
   estimate and the Wilson 95% upper confidence bound to be at or below
   `p_FA_max = 0.05`.
 
-The optional `--strict-manuscript` flag checks the exact final-outcome counts used in the manuscript for run `71d6a56c10a1c0ed`. This flag is intended for release checks of the manuscript run, not for arbitrary exploratory runs.
+The optional `--strict-manuscript` flag checks the exact final-outcome counts used in the manuscript for run `f930a51c1c594275`. This flag is intended for release checks of the manuscript run, not for arbitrary exploratory runs.
 
 ## Seed and run-hash policy
 
@@ -287,7 +282,7 @@ python scripts/run_all.py --all --outdir outputs_reproduced
 To verify the locked manuscript package included in this repository, run:
 
 ```bash
-python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed --strict-manuscript
+python scripts/verify_outputs.py --run-hash f930a51c1c594275 --strict-manuscript
 ```
 
 If a new full run is generated for a later manuscript revision, update the manuscript, SI, figure captions, tables, data accessibility statement and release notes to point to the new run hash.
@@ -307,7 +302,7 @@ The numbers reported are operating characteristics of a software pipeline on sim
 ## Adequacy operating-characteristic sweep
 
 The D2 affirmative-null certificate is magnitude-indexed. The seven-scenario
-benchmark run `71d6a56c10a1c0ed` reports the displayed `+/-60 microV s^-1`
+benchmark run `f930a51c1c594275` reports the displayed `+/-60 microV s^-1`
 false-adequacy points. The adequacy operating characteristic is generated
 separately by:
 
@@ -331,3 +326,4 @@ The certified magnitude is defined from the monotone Wilson upper-bound envelope
 for a given direction, all evaluated magnitudes at or above the certified
 magnitude must have false-adequacy point estimate and Wilson 95% upper bound at
 or below `p_FA_max = 0.05`.
+

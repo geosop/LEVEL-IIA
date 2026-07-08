@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 
-DEFAULT_FROZEN_RUN_HASH = "71d6a56c10a1c0ed"
+DEFAULT_FROZEN_RUN_HASH = "f930a51c1c594275"
 
 NumberLike = Union[str, int, float, Decimal]
 ColumnSpec = Tuple[str, str, str]
