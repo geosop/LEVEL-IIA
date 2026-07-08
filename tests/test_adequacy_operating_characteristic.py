@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN_HASH = "71d6a56c10a1c0ed"
+RUN_HASH = "f930a51c1c594275"
 CSV_PATH = ROOT / "outputs" / RUN_HASH / "summary" / "adequacy_operating_characteristic.csv"
 OUTPUT_TABLE = ROOT / "outputs" / RUN_HASH / "tables" / "adequacy_operating_characteristic.tex"
 PERSPECTIVE_TABLE = ROOT / "CRI_Perspective" / "Tables" / "adequacy_operating_characteristic.tex"
@@ -76,3 +76,5 @@ def test_adequacy_table_copies_match_generated_output() -> None:
 
     assert PERSPECTIVE_TABLE.read_text(encoding="utf-8") == generated
     assert MANUSCRIPT_TABLE.read_text(encoding="utf-8") == generated
+
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Derive false-adequacy rates from operating-characteristics outputs.
 
 A false-adequacy classification occurs when a material endpoint-level departure
@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional
 
 
-DEFAULT_FROZEN_RUN_HASH = "71d6a56c10a1c0ed"
+DEFAULT_FROZEN_RUN_HASH = "f930a51c1c594275"
 Z_95 = 1.959963984540054
 P_FA_MAX = 0.05
 
@@ -170,3 +170,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

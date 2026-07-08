@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 Created on Mon Jun 29 11:37:22 2026
 
@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-RUN_HASH = "71d6a56c10a1c0ed"
+RUN_HASH = "f930a51c1c594275"
 ROOT = Path(__file__).resolve().parents[1]
 RUN_DIR = ROOT / "outputs" / RUN_HASH
 OUT = ROOT / "CRI_Perspective" / "Tables" / "worked_decision_example.tex"

@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Verify benchmark output invariants and operating-characteristic thresholds.
 
 Usage:
-    python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed
+    python scripts/verify_outputs.py --run-hash f930a51c1c594275
     python scripts/verify_outputs.py --smoke
-    python scripts/verify_outputs.py --run-hash 71d6a56c10a1c0ed --strict-manuscript
+    python scripts/verify_outputs.py --run-hash f930a51c1c594275 --strict-manuscript
 
 The verifier has two layers.
 
@@ -321,7 +321,7 @@ def _check_operating_thresholds(df_indexed: pd.DataFrame, smoke: bool, errors: l
 
 
 def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, errors: list[str]) -> None:
-    expected_hash = "71d6a56c10a1c0ed"
+    expected_hash = "f930a51c1c594275"
     if run_hash != expected_hash:
         _fail(
             errors,
@@ -350,7 +350,7 @@ def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, err
                 )
 
     if not errors:
-        _ok("strict manuscript counts match run 71d6a56c10a1c0ed")
+        _ok("strict manuscript counts match run f930a51c1c594275")
 
 
 def _check_false_adequacy_rates(
@@ -470,7 +470,7 @@ def main() -> None:
     ap.add_argument(
         "--strict-manuscript",
         action="store_true",
-        help="also require exact outcome counts for manuscript run 71d6a56c10a1c0ed",
+        help="also require exact outcome counts for manuscript run f930a51c1c594275",
     )
     args = ap.parse_args()
 
@@ -519,3 +519,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

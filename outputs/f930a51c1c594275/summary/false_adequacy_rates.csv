@@ -1,0 +1,3 @@
+scenario,generator,material_departure,direction,beta_inj,false_adequacy_n,M,false_adequacy_rate,wilson95_low,wilson95_high,p_fa_max,certification_rule,certification_pass,run_hash,source_csv
+injected_residual,endpoint_injected,negative endpoint-level residual,negative,-60.0,0,1200,0.000000,0.000000,0.003191,0.050000,point_estimate_and_wilson95_high_le_p_fa_max,true,f930a51c1c594275,outputs/f930a51c1c594275/summary/operating_characteristics.csv
+opposite_direction,endpoint_injected_positive,positive endpoint-level residual,positive,60.0,0,1200,0.000000,0.000000,0.003191,0.050000,point_estimate_and_wilson95_high_le_p_fa_max,true,f930a51c1c594275,outputs/f930a51c1c594275/summary/operating_characteristics.csv

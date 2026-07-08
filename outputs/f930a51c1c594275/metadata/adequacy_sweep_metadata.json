@@ -1,0 +1,19 @@
+{
+  "sweep_id": "adequacy_0f95b1b5857fed11",
+  "run_hash": "f930a51c1c594275",
+  "M": 1200,
+  "deltas": [
+    20.0,
+    30.0,
+    40.0,
+    50.0,
+    60.0,
+    75.0,
+    90.0
+  ],
+  "p_fa_max": 0.05,
+  "certification_rule": "monotone_wilson95_high_envelope_le_p_fa_max",
+  "source_script": "scripts/make_adequacy_operating_characteristic.py",
+  "csv": "outputs/f930a51c1c594275/summary/adequacy_operating_characteristic.csv",
+  "table": "outputs/f930a51c1c594275/tables/adequacy_operating_characteristic.tex"
+}

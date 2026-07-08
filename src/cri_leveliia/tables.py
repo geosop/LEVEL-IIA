@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 Created on Sun Jun 28 10:43:17 2026
 
@@ -27,7 +27,7 @@ import pandas as pd
 
 # Current frozen manuscript/SI benchmark run. Writers also infer the run hash
 # from paths under outputs/<run_hash>/tables/ and allow explicit override.
-DEFAULT_FROZEN_RUN_HASH = "71d6a56c10a1c0ed"
+DEFAULT_FROZEN_RUN_HASH = "f930a51c1c594275"
 
 
 # Ordered columns for the realised operating-characteristics table (SI S9).
@@ -293,3 +293,4 @@ def collider_subtable_latex(
         fh.write("\n".join(lines) + "\n")
 
     return "\n".join(lines)
+
