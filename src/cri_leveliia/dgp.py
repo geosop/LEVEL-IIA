@@ -36,6 +36,7 @@ class Dataset:
     A_pre: np.ndarray                # committed pre-event endpoint (uV)
     S: np.ndarray                    # inclusion indicator (1 retained, 0 excluded)
     bin_index: np.ndarray            # assigned-delay bin index
+    trial_index: np.ndarray          # chronological trial index within participant
     grid_s: np.ndarray               # delay grid (s)
     leak_probe: np.ndarray           # pre-endpoint leakage probe value (uV)
     meta: dict = field(default_factory=dict)
@@ -129,7 +130,7 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
 
     n_per_part = n_bin * len(grid_s)
     parts, es, pes, hzs = [], [], [], []
-    tau_prev_all, tau_assigned_all, bins_all = [], [], []
+    tau_prev_all, tau_assigned_all, bins_all, trial_index_all = [], [], [], []
     A_all, leak_all = [], []
     S_logit_all = []
 
@@ -210,6 +211,7 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
         parts.append(np.full(n_per_part, p))
         es.append(e); pes.append(prev_e); hzs.append(hazard)
         tau_prev_all.append(tau_prev); tau_assigned_all.append(tau); bins_all.append(bins)
+        trial_index_all.append(np.arange(n_per_part, dtype=int))
         A_all.append(A); leak_all.append(leak); S_logit_all.append(s_logit)
 
     participant = np.concatenate(parts)
@@ -217,6 +219,7 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
     tau_prev = np.concatenate(tau_prev_all)
     tau_assigned = np.concatenate(tau_assigned_all)
     bin_index = np.concatenate(bins_all)
+    trial_index = np.concatenate(trial_index_all)
     A_pre = np.concatenate(A_all)
     leak_probe = np.concatenate(leak_all)
     s_logit = np.concatenate(S_logit_all)
@@ -231,7 +234,8 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
     return Dataset(
         participant=participant, e=e, prev_e=prev_e, hazard=hazard,
         tau_prev=tau_prev, tau_assigned=tau_assigned, tau_delivered=tau_delivered,
-        A_pre=A_pre, S=S, bin_index=bin_index, grid_s=grid_s, leak_probe=leak_probe,
+        A_pre=A_pre, S=S, bin_index=bin_index, trial_index=trial_index,
+        grid_s=grid_s, leak_probe=leak_probe,
         meta={"P": P, "n_per_part": n_per_part, "grid_mean": grid_mean,
               "sigma_resid": sigma_resid, "beta_inj": beta_inj,
               "sel_mode": sel_mode},

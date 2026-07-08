@@ -17,6 +17,10 @@ selection_mode: random
 base_retention: 0.80
 collider_gamma: 0.0
 leakage: false
+inference_route: assignment_isolation
+assignment_law:
+  type: fixed_multiset_without_replacement
+  within: participant
 n_folds: 5
 ridge_lambda: 1.0
 kappa: 2.0

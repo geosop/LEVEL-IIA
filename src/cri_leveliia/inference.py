@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import numpy as np
 from scipy import stats
+from scipy.special import logsumexp
 
 
 # --------------------------------------------------------------------------- #
@@ -47,6 +48,11 @@ def participant_slopes(resid, participant, tau_centered):
 def randomisation_pvalue(resid, participant, tau_centered, beta_obs,
                          R=1499, rng=None, alternative="less"):
     """One-sided plus-one randomisation p-value.
+
+    This routine is valid only for the assignment-isolation route, where the
+    frozen residual array is invariant under admissible reassignment of the
+    assigned-delay labels. It is not valid for carryover-sensitive designs in
+    which assigned labels may affect later endpoints or histories.
 
     The residuals are frozen; the centred assigned delay is permuted within each
     participant block (post-endpoint exchangeability), the equal-participant
@@ -90,6 +96,142 @@ def randomisation_pvalue(resid, participant, tau_centered, beta_obs,
         ge = np.sum(beta_perm >= beta_obs)
     p = (1.0 + ge) / (R + 1.0)
     return float(p), beta_perm
+
+
+# --------------------------------------------------------------------------- #
+# Sequential martingale/e-value route for carryover-sensitive designs
+# --------------------------------------------------------------------------- #
+def participant_sequential_slopes(resid, participant, delta_tau, var_tau):
+    """Return participant-level sequential-score slopes.
+
+    beta_seq_p = sum_j r_pj * (tau_pj - E[tau_pj | F_pre_pj])
+                 / sum_j Var(tau_pj | F_pre_pj).
+
+    Trials with nonpositive conditional assignment variance are excluded from
+    the denominator and numerator. Participants with zero total conditional
+    variance are dropped. This estimand is used by the sequential e-value route
+    and is not a frozen-array permutation estimand.
+    """
+    resid = np.asarray(resid, dtype=float)
+    participant = np.asarray(participant)
+    delta_tau = np.asarray(delta_tau, dtype=float)
+    var_tau = np.asarray(var_tau, dtype=float)
+    uniq = np.unique(participant)
+    slopes, denoms, keep = [], [], []
+    for pid in uniq:
+        m = (participant == pid) & np.isfinite(resid) & np.isfinite(delta_tau) & np.isfinite(var_tau) & (var_tau > 0)
+        den = float(np.sum(var_tau[m]))
+        if den <= 0 or not np.isfinite(den):
+            continue
+        slopes.append(float(np.sum(resid[m] * delta_tau[m]) / den))
+        denoms.append(den)
+        keep.append(pid)
+    slopes = np.asarray(slopes, dtype=float)
+    denoms = np.asarray(denoms, dtype=float)
+    beta_tau = float(np.mean(slopes)) if slopes.size else np.nan
+    return slopes, denoms, np.asarray(keep), beta_tau
+
+
+def _normalise_evalue_weights(lambda_grid, weights):
+    lam = np.asarray(lambda_grid, dtype=float)
+    if lam.ndim != 1 or lam.size == 0 or np.any(~np.isfinite(lam)) or np.any(lam <= 0):
+        raise ValueError("lambda_grid must be a nonempty one-dimensional array of positive finite values")
+    if weights is None or (isinstance(weights, str) and weights == "equal"):
+        w = np.ones(lam.size, dtype=float) / lam.size
+    else:
+        w = np.asarray(weights, dtype=float)
+        if w.shape != lam.shape:
+            raise ValueError("weights must have the same length as lambda_grid")
+        if np.any(w < 0) or not np.any(w > 0):
+            raise ValueError("weights must be nonnegative with at least one positive entry")
+        w = w / np.sum(w)
+    return lam, w
+
+
+def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None,
+                             lambda_grid=None, weights=None, alternative="less"):
+    """Sequential martingale/e-value calibration for current-trial assignment increments.
+
+    This is the deployable carryover-sensitive route. It uses the observed frozen
+    residuals and the declared conditional assignment law for the current trial.
+    It does not regenerate counterfactual endpoints and it is not an exact
+    frozen-array randomisation p-value.
+
+    Parameters
+    ----------
+    resid : array-like, shape (n,)
+        Frozen residuals on retained trials.
+    tau_obs : array-like, shape (n,)
+        Observed assigned delays on retained trials.
+    support : array-like, shape (n, k)
+        Conditional support values for each retained trial.
+    prob : array-like, shape (n, k)
+        Conditional probabilities for each retained trial.
+    mu : array-like, shape (n,)
+        Conditional assignment mean for each retained trial.
+    lambda_grid : array-like
+        Predeclared positive e-value tuning grid.
+    weights : array-like or "equal"
+        Convex mixture weights over lambda_grid.
+    alternative : {"less", "greater"}
+        "less" tests a negative assigned-delay slope.
+
+    Returns
+    -------
+    dict
+        p_seq, log_e_mix, log_e_grid, lambda_grid, weights, n_terms, valid, reason.
+    """
+    if lambda_grid is None:
+        lambda_grid = np.array([1, 2, 5, 10, 20, 50, 100, 200], dtype=float)
+    lam, w = _normalise_evalue_weights(lambda_grid, weights)
+
+    resid = np.asarray(resid, dtype=float)
+    tau_obs = np.asarray(tau_obs, dtype=float)
+    support = np.asarray(support, dtype=float)
+    prob = np.asarray(prob, dtype=float)
+    mu = np.asarray(mu, dtype=float)
+
+    if support.shape != prob.shape or support.ndim != 2:
+        return {"p_seq": 1.0, "log_e_mix": -np.inf, "log_e_grid": np.full(lam.size, -np.inf),
+                "lambda_grid": lam, "weights": w, "n_terms": 0, "valid": False,
+                "reason": "support and prob must be two-dimensional arrays with matching shape"}
+
+    finite = (np.isfinite(resid) & np.isfinite(tau_obs) & np.isfinite(mu) &
+              np.all(np.isfinite(support), axis=1) & np.all(np.isfinite(prob), axis=1) &
+              np.isclose(np.sum(prob, axis=1), 1.0, atol=1e-8) &
+              np.all(prob >= -1e-12, axis=1))
+    finite &= np.any(prob > 0, axis=1)
+    if not np.any(finite):
+        return {"p_seq": 1.0, "log_e_mix": -np.inf, "log_e_grid": np.full(lam.size, -np.inf),
+                "lambda_grid": lam, "weights": w, "n_terms": 0, "valid": False,
+                "reason": "no valid conditional assignment rows"}
+
+    r = resid[finite]
+    t = tau_obs[finite]
+    s = support[finite]
+    p = np.clip(prob[finite], 0.0, 1.0)
+    p = p / p.sum(axis=1, keepdims=True)
+    m = mu[finite]
+    n = r.size
+
+    if alternative not in {"less", "greater"}:
+        raise ValueError("alternative must be 'less' or 'greater'")
+    sign = -1.0 if alternative == "less" else 1.0
+    x_obs = sign * r * (t - m)
+    z_support = sign * r[:, None] * (s - m[:, None])
+    with np.errstate(divide="ignore"):
+        log_p = np.where(p > 0.0, np.log(p), -np.inf)
+
+    log_e_grid = []
+    for la in lam:
+        log_mgf = logsumexp(log_p + la * z_support, axis=1)
+        log_e_grid.append(float(np.sum(la * x_obs - log_mgf)))
+    log_e_grid = np.asarray(log_e_grid, dtype=float)
+    log_e_mix = float(logsumexp(np.log(w) + log_e_grid))
+    p_seq = float(min(1.0, np.exp(-log_e_mix))) if np.isfinite(log_e_mix) else 1.0
+    return {"p_seq": p_seq, "log_e_mix": log_e_mix, "log_e_grid": log_e_grid,
+            "lambda_grid": lam, "weights": w, "n_terms": int(n), "valid": True,
+            "reason": "ok"}
 
 
 # --------------------------------------------------------------------------- #
