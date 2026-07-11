@@ -1,4 +1,4 @@
-﻿# Reviewer reproduction guide
+# Reviewer reproduction guide
 
 ## 1. Environment
 
@@ -19,10 +19,10 @@ python scripts/verify_outputs.py --smoke
 pytest -q
 ```
 
-`verify_outputs.py` checks the qualification invariants (false-support control,
-recovery power, audit blocking, the collider scope test, opposite-direction
-classification, and the derived false-adequacy rates under material endpoint-level
-departures). It exits non-zero on failure.
+`verify_outputs.py` checks false-support control, recovery power, audit blocking,
+the collider scope test, component-disagreement routing, participant-estimability
+diagnostics, opposite-direction diagnostic classification, and false-adequacy
+rates under material endpoint-level departures. It exits non-zero on failure.
 
 ## 3. Full manuscript run
 
@@ -37,13 +37,15 @@ RUN_HASH=$(cat outputs/LATEST_RUN.txt)
 python scripts/make_figure2.py --run-hash $RUN_HASH
 python scripts/make_tables.py  --run-hash $RUN_HASH
 python scripts/verify_outputs.py --run-hash $RUN_HASH
+python scripts/make_worked_example.py --run-hash $RUN_HASH
 ```
 
 ## Certified manuscript run
 
-The certified manuscript run is `f930a51c1c594275`. It uses `M=1200` Monte Carlo
-datasets per scenario, `P=24` participants, five assigned-delay bins, and
-`n/bin=24` planned trials per assigned-delay bin.
+The certified manuscript run is the hash committed in
+`manuscript/certified_run_counts.json`. It uses `M=1200` Monte Carlo datasets per
+scenario, `P=24` participants, five assigned-delay bins, and `n/bin=24` planned
+trials per assigned-delay bin.
 
 Affirmative-null certification requires both the false-adequacy point estimate
 and the Wilson 95% upper confidence bound to be at or below `p_FA_max = 0.05`.
@@ -51,7 +53,7 @@ and the Wilson 95% upper confidence bound to be at or below `p_FA_max = 0.05`.
 The certified false-adequacy file is:
 
 ```text
-outputs/f930a51c1c594275/summary/false_adequacy_rates.csv
+outputs/<certified-run-hash>/summary/false_adequacy_rates.csv
 ```
 ## 4. What to inspect
 

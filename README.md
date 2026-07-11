@@ -1,4 +1,4 @@
-﻿# Level II-A post-endpoint randomisation benchmark
+# Level II-A post-endpoint randomisation benchmark
 
 Reproducible benchmark pipeline for the Level II-A post-endpoint randomisation
 operating-characteristic study.
@@ -22,10 +22,31 @@ directory. Because the manuscript and SI source files are maintained outside thi
 repository, the run hash is the reproducibility anchor for benchmark numbers, not
 a pointer to manuscript source files.
 
-The certified full benchmark run for the current sequential-evalue revision is
+### Certification transition status
+
+Version 1.1.0 changes the non-compensatory classifier, participant-level
+estimability qualification, retained-design leverage handling, conditional
+selection-gate reporting, and benchmark provenance. The currently committed
+lock points to legacy run `f930a51c1c594275`, which was generated under version
+1.0.0. That run is retained only for historical reproduction and does not
+certify the revised version 1.1.0 pipeline.
+
+After this source revision is committed, a complete candidate benchmark with
+1,200 Monte Carlo datasets per scenario and the associated magnitude-indexed
+adequacy sweep will be generated and independently verified. Only after those
+checks pass will the candidate run be promoted, the manuscript count lock be
+replaced, and the README, generated tables, figures, release metadata and
+external manuscript references be updated. Smoke runs are execution checks
+only and must not be cited as certified results.
+
+The currently locked legacy full benchmark run is identified in
+`manuscript/certified_run_counts.json`. That committed lock preserves the exact
+run hash and mutually exclusive outcome counts from the last certified
+manuscript-facing benchmark package. It will be replaced only after the revised
+version 1.1.0 full run passes all verification and adequacy checks. The planned
+full-run design is:
 
 ```text
-run hash: f930a51c1c594275
 M:        1200 Monte Carlo datasets per scenario
 P:        24 participants
 n/bin:    24 planned trials per assigned-delay bin
@@ -34,23 +55,20 @@ B:        999 participant bootstrap replicates
 support:  [0, 20] ms
 ```
 
-The corresponding output directory is
-
-```text
-outputs/f930a51c1c594275/
-```
+The corresponding output directory is `outputs/<certified-run-hash>/`, where
+`<certified-run-hash>` is read from the committed lock file.
 
 The canonical numeric source for the certified operating characteristics is
 
 ```text
-outputs/f930a51c1c594275/summary/operating_characteristics.csv
+outputs/<certified-run-hash>/summary/operating_characteristics.csv
 ```
 
 The false-adequacy rates under material endpoint-level departures are derived
 from the same certified operating-characteristics CSV and written as
 
 ```text
-outputs/f930a51c1c594275/summary/false_adequacy_rates.csv
+outputs/<certified-run-hash>/summary/false_adequacy_rates.csv
 ```
 
 An operating point licenses affirmative-null certification only if the
@@ -61,8 +79,8 @@ The manuscript-facing LaTeX tables are generated from the certified CSV as split
 design and outcome tables:
 
 ```text
-outputs/f930a51c1c594275/tables/operating_characteristics_design.tex
-outputs/f930a51c1c594275/tables/operating_characteristics_outcomes.tex
+outputs/<certified-run-hash>/tables/operating_characteristics_design.tex
+outputs/<certified-run-hash>/tables/operating_characteristics_outcomes.tex
 ```
 
 The earlier lower-retained-trial reference run is retained only as a
@@ -75,16 +93,25 @@ The locked pipeline consists of:
 * committed endpoint;
 * label-blind cross-fitted forward-only comparator;
 * frozen residual array;
-* participant-level slope estimand;
+* participant-level slope estimand with retained delay centred within participant;
+* prospective participant-estimability and retained-leverage qualification;
 * route-specific calibration:
   * `assignment_isolation`: plus-one randomisation under endpoint-array invariance;
   * `sequential_evalue`: martingale/e-value calibration for carryover-sensitive scenarios;
 * studentised participant bootstrap-t upper bound;
 * materiality floor;
 * audit battery;
-* scalar selection-sensitivity gate;
+* scalar selection-sensitivity gate, applicable only to a resolved material departure;
 * endpoint-by-delay collider diagnostic;
+* component-disagreement routing to the inconclusive class;
 * non-compensatory final classifier.
+
+The negative tail is the sole confirmatory level-alpha hypothesis. The positive
+tail is a prespecified opposite-direction diagnostic and is not represented as a
+level-alpha omnibus class rejection. The executable classifier uses the frozen
+residual analysis. An unadjusted committed-endpoint slope may be reported
+descriptively as an adjustment-sensitivity diagnostic, but it is neither a
+support criterion nor a veto.
 
 The pipeline is required to behave as designed under seven scenarios.
 
@@ -158,20 +185,20 @@ Resume an interrupted reproduction run in that same separate directory:
 python scripts/run_all.py --all --outdir outputs_reproduced --resume
 ```
 
-Verify the locked manuscript run:
+Verify the locked manuscript run in PowerShell:
 
-```bash
-python scripts/verify_outputs.py --run-hash f930a51c1c594275
-python scripts/verify_outputs.py --run-hash f930a51c1c594275 --strict-manuscript
+```powershell
+$RunHash = (Get-Content manuscript\certified_run_counts.json | ConvertFrom-Json).run_hash
+python scripts\verify_outputs.py --run-hash $RunHash --strict-manuscript
 ```
 
-Regenerate benchmark tables and figures for external manuscript use from the locked run:
+Regenerate benchmark tables, figures and the worked example from that run:
 
-```bash
-python scripts/make_figure2.py --run-hash f930a51c1c594275
-python scripts/make_split_oc_tables.py --run-hash f930a51c1c594275
-python scripts/make_tables.py --run-hash f930a51c1c594275
-python scripts/make_worked_example.py
+```powershell
+python scripts\make_figure2.py --run-hash $RunHash
+python scripts\make_split_oc_tables.py --run-hash $RunHash
+python scripts\make_tables.py --run-hash $RunHash
+python scripts\make_worked_example.py --run-hash $RunHash
 ```
 
 Run unit tests:
@@ -214,15 +241,19 @@ Second, it checks operating-characteristic qualification thresholds:
   estimate and the Wilson 95% upper confidence bound to be at or below
   `p_FA_max = 0.05`.
 
-The optional `--strict-manuscript` flag checks the exact final-outcome counts used in the manuscript for run `f930a51c1c594275`. This flag is intended for release checks of the manuscript run, not for arbitrary exploratory runs.
+The optional `--strict-manuscript` flag checks the run hash and exact final-outcome
+counts in `manuscript/certified_run_counts.json`. After a corrected full run has
+passed all qualification and false-adequacy checks,
+`--write-manuscript-lock` prospectively freezes its exact counts for manuscript
+release checking.
 
 ## Seed and run-hash policy
 
 * **Deterministic seeds.** Each scenario has a `base_seed`; Monte Carlo replicate `i` uses seed `base_seed * 1_000_000 + i`.
 * **Replicate reproducibility.** Re-running a replicate reproduces it exactly, which is also how Figure 2 panels and the SI worked example are rebuilt.
-* **Run hash.** `metadata.compute_run_hash` is a SHA-256 digest, truncated to the first 16 hex characters, over the resolved configuration bundle plus the code version and seed family. The same configs and code map to the same hash; changing any config changes the hash.
+* **Run hash.** `metadata.compute_run_hash` is a SHA-256 digest, truncated to the first 16 hex characters, over the resolved configuration bundle, package version, seed family and deterministic executable-source fingerprint. The same configurations and hashed source map to the same hash; changing either the configuration bundle or fingerprinted source changes the hash.
 * **No overwrite by default.** `run_all.py` writes to a deterministic `<outdir>/<run_hash>/` directory. Repeating the same configuration, seed family and package version targets the same directory and is refused by default. Changed configurations produce changed hashes. Use `--outdir` for independent reproduction, `--resume` for incomplete runs, and `--overwrite` only for deliberate clean regeneration.
-* **Latest run pointer.** `<outdir>/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution within that output root, including smoke runs. The locked manuscript run is always identified explicitly by the frozen run hash above.
+* **Latest run pointer.** `<outdir>/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution within that output root, including smoke runs. The locked manuscript run is always identified explicitly by the committed hash in `manuscript/certified_run_counts.json`.
 
 ## Output layout
 
@@ -279,11 +310,9 @@ output directory, run:
 python scripts/run_all.py --all --outdir outputs_reproduced
 ```
 
-To verify the locked manuscript package included in this repository, run:
-
-```bash
-python scripts/verify_outputs.py --run-hash f930a51c1c594275 --strict-manuscript
-```
+To verify the locked manuscript package included in this repository, read the
+committed hash from `manuscript/certified_run_counts.json` and run
+`verify_outputs.py --strict-manuscript` as shown above.
 
 If a new full run is generated for a later manuscript revision, update the manuscript, SI, figure captions, tables, data accessibility statement and release notes to point to the new run hash.
 
@@ -301,10 +330,9 @@ The numbers reported are operating characteristics of a software pipeline on sim
 
 ## Adequacy operating-characteristic sweep
 
-The D2 affirmative-null certificate is magnitude-indexed. The seven-scenario
-benchmark run `f930a51c1c594275` reports the displayed `+/-60 microV s^-1`
-false-adequacy points. The adequacy operating characteristic is generated
-separately by:
+The D2 affirmative-null certificate is magnitude-indexed. The adequacy operating
+characteristic must be regenerated against the same committed run after every
+classifier-semantic change. It is generated by:
 
 ~~~powershell
 $RunHash = (Get-Content outputs\LATEST_RUN.txt).Trim()

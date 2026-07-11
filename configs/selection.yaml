@@ -27,6 +27,12 @@ ridge_lambda: 1.0
 kappa: 2.0
 alpha: 0.05
 N_min: 10
+participant_estimability:
+  min_retained_trials: 20
+  min_delay_levels: 3
+  min_leverage_fraction: 0.50
+  slope_bound_scale_multiplier: 3.0
+  summary_smd_threshold: 0.50
 R: 999
 B: 999
 interaction_z: 3.0

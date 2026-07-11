@@ -18,6 +18,7 @@ audits      : randomisation, temporal-leakage, delivery, retention and
               implementation-swap audits.
 selection   : scalar selection-sensitivity gate (Lee/Manski required-versus-
               audited marginal imbalance).
+estimability: participant-level leverage diagnostics and bounded sensitivity.
 collider    : endpoint-by-delay collider-selection diagnostics.
 benchmarks  : scenario runner, decision rule and operating-characteristic
               aggregation.
@@ -26,6 +27,6 @@ tables      : LaTeX and CSV table writers.
 metadata    : deterministic seed policy, run-hash and environment capture.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
-from . import dgp, comparator, inference, audits, selection, collider  # noqa: F401
+from . import dgp, comparator, inference, audits, selection, estimability, collider  # noqa: F401

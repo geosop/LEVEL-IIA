@@ -22,3 +22,14 @@ def test_run_hash_is_stable_and_content_dependent():
     b2 = {"a": {"x": 2}}
     assert metadata.compute_run_hash(b1, "full") == metadata.compute_run_hash(b1, "full")
     assert metadata.compute_run_hash(b1, "full") != metadata.compute_run_hash(b2, "full")
+
+
+def test_source_fingerprint_is_stable_and_source_dependent(tmp_path):
+    a = tmp_path / "a.py"
+    b = tmp_path / "b.py"
+    a.write_text("x = 1\n", encoding="utf-8")
+    b.write_text("y = 2\n", encoding="utf-8")
+    first = metadata.source_fingerprint([a, b])
+    assert first == metadata.source_fingerprint([a, b])
+    b.write_text("y = 3\n", encoding="utf-8")
+    assert first != metadata.source_fingerprint([a, b])

@@ -1,0 +1,69 @@
+{
+  "counts": {
+    "adversarial_null": {
+      "M": 1200,
+      "diagnostic_failure_n": 1,
+      "inconclusive_n": 0,
+      "null_n": 1193,
+      "opposite_direction_n": 0,
+      "selection_limited_n": 6,
+      "support_n": 0
+    },
+    "clean_null": {
+      "M": 1200,
+      "diagnostic_failure_n": 3,
+      "inconclusive_n": 0,
+      "null_n": 1192,
+      "opposite_direction_n": 0,
+      "selection_limited_n": 5,
+      "support_n": 0
+    },
+    "collider_selection": {
+      "M": 1200,
+      "diagnostic_failure_n": 1,
+      "inconclusive_n": 0,
+      "null_n": 0,
+      "opposite_direction_n": 0,
+      "selection_limited_n": 1199,
+      "support_n": 0
+    },
+    "injected_residual": {
+      "M": 1200,
+      "diagnostic_failure_n": 2,
+      "inconclusive_n": 0,
+      "null_n": 0,
+      "opposite_direction_n": 0,
+      "selection_limited_n": 7,
+      "support_n": 1191
+    },
+    "leakage": {
+      "M": 1200,
+      "diagnostic_failure_n": 1200,
+      "inconclusive_n": 0,
+      "null_n": 0,
+      "opposite_direction_n": 0,
+      "selection_limited_n": 0,
+      "support_n": 0
+    },
+    "opposite_direction": {
+      "M": 1200,
+      "diagnostic_failure_n": 3,
+      "inconclusive_n": 0,
+      "null_n": 0,
+      "opposite_direction_n": 1187,
+      "selection_limited_n": 10,
+      "support_n": 0
+    },
+    "selection_standard": {
+      "M": 1200,
+      "diagnostic_failure_n": 0,
+      "inconclusive_n": 0,
+      "null_n": 0,
+      "opposite_direction_n": 0,
+      "selection_limited_n": 1200,
+      "support_n": 0
+    }
+  },
+  "note": "Legacy certified run. Replace only after the corrected full run passes verification.",
+  "run_hash": "f930a51c1c594275"
+}

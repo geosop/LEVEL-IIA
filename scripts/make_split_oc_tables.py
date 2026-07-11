@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -7,8 +7,6 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-
-DEFAULT_FROZEN_RUN_HASH = "f930a51c1c594275"
 
 NumberLike = Union[str, int, float, Decimal]
 ColumnSpec = Tuple[str, str, str]
@@ -43,6 +41,7 @@ DESIGN_COLUMNS: List[ColumnSpec] = [
     ("beta_inj", "$\\beta^{\\mathrm{inj}}$", "num"),
     ("mean_beta_hat", "Mean $\\widehat{\\beta}_\\tau$", "num"),
     ("median_ucb", "Med. UCB", "num"),
+    ("N_estimable_med", r"Med. $N_{\mathrm{est}}$", "num"),
 ]
 
 
@@ -50,15 +49,18 @@ OUTCOME_COLUMNS: List[ColumnSpec] = [
     ("scenario", "Scenario", "text"),
     ("rand_pass_rate", "rand. pass", "rate"),
     ("materiality_pass_rate", "resol. pass", "rate"),
+    ("component_disagreement_rate", "comp. dis.", "rate"),
     ("retention_fire_rate", "reten. fire", "rate"),
     ("leak_fire_rate", "leak fire", "rate"),
-    ("gate_pass_rate", "gate pass", "rate"),
+    ("gate_pass_given_applicable_rate", "gate pass$^{a}$", "conditional_rate"),
     ("collider_fire_rate", "collider fire", "rate"),
+    ("estimability_conclusion_change_rate", "est. block", "rate"),
     ("support_rate", "support", "count_rate"),
     ("selection_limited_rate", "sel.-lim.", "count_rate"),
     ("diagnostic_failure_rate", "diag. fail", "count_rate"),
     ("null_rate", "null", "count_rate"),
-    ("opposite_direction_rate", "opp. dir.", "count_rate"),
+    ("opposite_direction_rate", "opp. diag.", "count_rate"),
+    ("inconclusive_rate", "inconcl.", "count_rate"),
 ]
 
 
@@ -110,6 +112,14 @@ def fmt_num(value: str) -> str:
 
 def fmt_rate(value: str) -> str:
     return round_half_up_str(value, 3)
+
+def fmt_conditional_rate(value: str) -> str:
+    raw = str(value).strip()
+
+    if raw == "" or raw.lower() in {"nan", "na", "n/a"}:
+        return "n/a"
+
+    return round_half_up_str(raw, 3)
 
 
 def fmt_int(value: str) -> str:
@@ -198,6 +208,9 @@ def fmt_cell(row: Dict[str, str], key: str, kind: str) -> str:
 
     if kind == "rate":
         return fmt_rate(row[key])
+
+    if kind == "conditional_rate":
+        return fmt_conditional_rate(row[key])
 
     if kind == "count_rate":
         return fmt_count_rate(row, key)
@@ -305,7 +318,9 @@ def write_split_tables(
     run_hash: Optional[str] = None,
 ) -> None:
     rows = read_rows(csv_path)
-    actual_hash = run_hash or rows[0].get("run_hash") or DEFAULT_FROZEN_RUN_HASH
+    actual_hash = run_hash or rows[0].get("run_hash")
+    if not actual_hash:
+        raise ValueError("run hash is required for generated-table provenance")
 
     validate_rows(rows, DESIGN_COLUMNS)
     validate_rows(rows, OUTCOME_COLUMNS)
@@ -326,7 +341,8 @@ def write_split_tables(
         f"$\\sigma_{{\\mathrm{{resid}}}}={sigma_resid}\\,\\mu$V is the nominal "
         "generator residual-noise scale; the displayed $\\beta_{\\min}$ is "
         "recomputed for each scenario from the label-blind realised residual "
-        "scale and retained-trial yield through the locked materiality formula, "
+        "scale, retained-trial yield and effective retained assigned-delay leverage "
+        "through the locked materiality formula, "
         "so its variation across rows is expected; not human EEG."
     )
 
@@ -334,8 +350,12 @@ def write_split_tables(
         "Diagnostic rates and mutually exclusive decision outcomes for the locked Level II-A "
         "pipeline on simulated data. Design constants and slope summaries are reported in "
         f"Table~\\ref{{tab:si-oc-design}}. Run hash \\texttt{{{actual_hash}}}; all outcome "
-        f"cells are exact counts over $M={m}$ Monte Carlo datasets with rates in parentheses; "
-        "not human EEG."
+        f"cells are exact counts over $M={m}$ Monte Carlo datasets with rates in parentheses. "
+        r"The negative tail is the sole confirmatory level-$\alpha$ hypothesis; the positive "
+        "tail is a prespecified diagnostic. Component disagreement is routed to the "
+        "inconclusive class. $^{a}$The scalar selection gate is evaluated only for a "
+        "resolved material departure; the displayed rate is conditional on applicability. "
+        "Not human EEG."
     )
 
     write_table(
@@ -345,7 +365,7 @@ def write_split_tables(
         columns=DESIGN_COLUMNS,
         caption=design_caption,
         label="tab:si-oc-design",
-        tabular_spec="llrrrrr",
+        tabular_spec="llrrrrrr",
         fontsize="\\footnotesize",
     )
 
@@ -356,8 +376,8 @@ def write_split_tables(
         columns=OUTCOME_COLUMNS,
         caption=outcome_caption,
         label="tab:si-oc-outcomes",
-        tabular_spec="lrrrrrrlllll",
-        fontsize="\\scriptsize",
+        tabular_spec="lrrrrrrrrllllll",
+        fontsize="\\tiny",
     )
 
 

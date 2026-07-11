@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Sun Jun 28 10:43:17 2026
 
@@ -25,9 +25,8 @@ from pathlib import Path
 import pandas as pd
 
 
-# Current frozen manuscript/SI benchmark run. Writers also infer the run hash
-# from paths under outputs/<run_hash>/tables/ and allow explicit override.
-DEFAULT_FROZEN_RUN_HASH = "f930a51c1c594275"
+# Writers infer the run hash from paths under outputs/<run_hash>/tables/ or
+# require an explicit override. No stale manuscript hash is used as a fallback.
 
 
 # Ordered columns for the realised operating-characteristics table (SI S9).
@@ -44,17 +43,21 @@ OC_COLUMNS = [
     ("mean_beta_hat", "mean $\\widehat{\\beta}_\\tau$"),
     ("sd_beta_hat", "SD $\\widehat{\\beta}_\\tau$"),
     ("median_ucb", "med.\\ UCB"),
+    ("N_estimable_med", "med. $N_{\\mathrm{est}}$"),
     ("rand_pass_rate", "rand.\\ pass"),
     ("materiality_pass_rate", "resol.\\ pass"),
+    ("component_disagreement_rate", "comp.\\ dis."),
     ("retention_fire_rate", "reten.\\ fire"),
     ("leak_fire_rate", "leak fire"),
-    ("gate_pass_rate", "gate pass"),
+    ("gate_pass_given_applicable_rate", "gate pass $|$ material"),
     ("collider_fire_rate", "collider fire"),
+    ("estimability_conclusion_change_rate", "est.\\ block"),
     ("support_rate", "support"),
     ("selection_limited_rate", "sel.-lim."),
     ("diagnostic_failure_rate", "diag.\\ fail"),
     ("null_rate", "null"),
-    ("opposite_direction_rate", "opp.\\ dir."),
+    ("opposite_direction_rate", "opp.\\ diag."),
+    ("inconclusive_rate", "inconcl."),
 ]
 
 
@@ -135,7 +138,7 @@ def _resolve_run_hash(path=None, run_hash=None):
     if inferred:
         return inferred
 
-    return DEFAULT_FROZEN_RUN_HASH
+    raise ValueError("run hash must be explicit or inferable from an outputs/<run_hash>/ path")
 
 
 def _provenance_header(source_filename, path=None, run_hash=None):
@@ -177,6 +180,9 @@ def _fmt_outcome_count_rate(summary, rate_key):
 
 def _fmt_cell(summary, key):
     v = summary.get(key, "")
+
+    if key == "gate_pass_given_applicable_rate" and pd.isna(v):
+        return "n/a"
 
     if key in OUTCOME_RATE_TO_COUNT:
         return _fmt_outcome_count_rate(summary, key)

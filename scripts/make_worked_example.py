@@ -1,9 +1,10 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Mon Jun 29 11:37:22 2026
 
 @author: ADMIN
 """
+import argparse
 from pathlib import Path
 import json
 import math
@@ -13,14 +14,14 @@ import numpy as np
 import pandas as pd
 import yaml
 
-RUN_HASH = "f930a51c1c594275"
 ROOT = Path(__file__).resolve().parents[1]
-RUN_DIR = ROOT / "outputs" / RUN_HASH
-OUT = ROOT / "CRI_Perspective" / "Tables" / "worked_decision_example.tex"
+RUN_HASH = ""
+RUN_DIR = ROOT / "outputs"
+OUT = ROOT / "outputs" / "worked_decision_example.tex"
 
 sys.path.insert(0, str(ROOT / "src"))
 
-from cri_leveliia import audits, collider, comparator, dgp, inference, selection  # noqa: E402
+from cri_leveliia import dgp  # noqa: E402
 from cri_leveliia import benchmarks as B  # noqa: E402
 
 
@@ -75,6 +76,7 @@ def decision_indicators(decision):
         "diagnostic_failure": int(decision == "diagnostic_failure"),
         "opposite_direction": int(decision == "opposite_direction"),
         "null": int(decision == "forward_only_adequate"),
+        "inconclusive": int(decision == "inconclusive"),
     }
 
 
@@ -86,88 +88,20 @@ def analyse_replicate(cfg_name, scenario_key, rep):
     cfg = load_cfg(cfg_name)
     rng = np.random.default_rng(B._replicate_seed(cfg["base_seed"], rep))
     ds = dgp.generate_dataset(rng, cfg)
+    out = B.pipeline_once(ds, cfg, rng)
+    details = out["_analysis_details"]
 
-    resid, idx_ret, _ = comparator.cross_fitted_residual(
-        ds,
-        n_folds=cfg.get("n_folds", 5),
-        lam=cfg.get("ridge_lambda", 1.0),
-        rng=rng,
-    )
-
-    part_ret = ds.participant[idx_ret]
-    tau_ret = ds.tau_assigned[idx_ret]
-    grid_mean = ds.meta.get("grid_mean", float(np.mean(ds.grid_s)))
-    tau_c = tau_ret - grid_mean
-
-    resid_within = resid.copy()
-    for pid in np.unique(part_ret):
-        m = part_ret == pid
-        resid_within[m] = resid_within[m] - np.nanmean(resid_within[m])
-
-    sigma_blind = float(np.nanstd(resid_within, ddof=1))
-    sigma_tau = float(np.std(ds.grid_s))
-    support_s = float(ds.grid_s.max() - ds.grid_s.min())
-
-    slopes, denoms, keep, beta = inference.participant_slopes(resid, part_ret, tau_c)
-    n_participants = int(keep.size)
-    nbar_ret = idx_ret.size / max(n_participants, 1)
-    n_bins = int(ds.bin_index.max()) + 1
-    n_per_bin = idx_ret.size / n_bins
-
-    beta_min = inference.beta_min(
-        sigma_blind,
-        sigma_tau,
-        nbar_ret,
-        kappa=cfg.get("kappa", 2.0),
-    )
-
-    if n_participants >= 2 and np.isfinite(beta):
-        p_less, _ = inference.randomisation_pvalue(
-            resid, part_ret, tau_c, beta,
-            R=cfg.get("R", 1499), rng=rng, alternative="less"
-        )
-        p_greater, _ = inference.randomisation_pvalue(
-            resid, part_ret, tau_c, beta,
-            R=cfg.get("R", 1499), rng=rng, alternative="greater"
-        )
-        bb = inference.bootstrap_bounds(slopes, B=cfg.get("B", 1499), rng=rng)
-    else:
-        p_less = 1.0
-        p_greater = 1.0
-        bb = {"se": np.nan, "ucb": np.nan, "lcb": np.nan}
-
-    aud = audits.run_audit_battery(ds, cfg.get("tolerances", {}))
-    gate = selection.selection_gate(
-        beta,
-        support_s,
-        sigma_blind,
-        aud["retention"]["imbalance"],
-        n_per_bin,
-        p_high=cfg.get("base_retention", 0.8),
-    )
-    col = collider.run_collider_diagnostics(ds, cfg)
-
-    out = {
-        "beta": beta,
-        "se": bb["se"],
-        "ucb": bb["ucb"],
-        "lcb": bb["lcb"],
-        "p_rand_less": p_less,
-        "p_rand_greater": p_greater,
-        "beta_min": beta_min,
-        "N": n_participants,
-        "nbar_ret": nbar_ret,
-        "sigma_blind": sigma_blind,
-        "audits": aud,
-        "selection_gate": gate,
-        "collider": col,
-    }
-    out["decision"] = B.decide(out, cfg)
+    resid = np.asarray(details["residual_retained"], dtype=float)
+    idx_ret = np.asarray(details["retained_indices"], dtype=int)
+    analysis_mask = np.asarray(details["analysis_mask_retained"], dtype=bool)
+    slopes = np.asarray(details["participant_slopes"], dtype=float)
+    grid_mean = float(ds.meta.get("grid_mean", np.mean(ds.grid_s)))
 
     bin_rows = []
     for i, grid_s in enumerate(ds.grid_s):
         m = ds.bin_index[idx_ret] == i
         vals = resid[m]
+        vals = vals[np.isfinite(vals)]
         if vals.size:
             mean = float(np.mean(vals))
             se = float(np.std(vals, ddof=1) / np.sqrt(vals.size)) if vals.size > 1 else np.nan
@@ -193,7 +127,8 @@ def analyse_replicate(cfg_name, scenario_key, rep):
         "computed": out,
         "slopes": slopes,
         "bin_rows": bin_rows,
-        "sigma_tau": sigma_tau,
+        "sigma_tau": float(out.get("sigma_tau_eff", np.nan)),
+        "analysis_n": int(np.sum(analysis_mask)),
     }
 
 
@@ -409,12 +344,17 @@ def make_latex(inj, nul, warnings):
     lines.append(latex_row([r"Bootstrap-\(t\) \(\mathrm{LCB}_{0.95}\)", "reported", f"\\({fmt(get(inj_raw, 'lcb'))}\\)", f"\\({fmt(get(nul_raw, 'lcb'))}\\)"]))
     lines.append(latex_row([r"Resolution floor \(\beta_{\min}\)", "registered formula", f"\\({fmt(get(inj_raw, 'beta_min'))}\\)", f"\\({fmt(get(nul_raw, 'beta_min'))}\\)"]))
     lines.append(latex_row([r"Randomisation \(p\), negative direction", r"\(\le 0.05\)", f"\\({fmtp(get(inj_raw, 'p_rand_less'))}\\)", f"\\({fmtp(get(nul_raw, 'p_rand_less'))}\\)"]))
-    lines.append(latex_row([r"Randomisation \(p\), positive direction", "reported", f"\\({fmtp(get(inj_raw, 'p_rand_greater'))}\\)", f"\\({fmtp(get(nul_raw, 'p_rand_greater'))}\\)"]))
+    lines.append(latex_row([r"Randomisation \(p\), positive direction", "prespecified diagnostic", f"\\({fmtp(get(inj_raw, 'p_rand_greater'))}\\)", f"\\({fmtp(get(nul_raw, 'p_rand_greater'))}\\)"]))
+    lines.append(latex_row([r"Estimable participants", r"\(N_{\mathrm{est}}\)", f"\\({fmt(get(inj_raw, 'N_estimable'), 0)}\\)", f"\\({fmt(get(nul_raw, 'N_estimable'), 0)}\\)"]))
+    lines.append(latex_row([r"Non-estimable fraction", "reported", f"\\({fmt(get(inj_raw, 'nonestimable_fraction'), 3)}\\)", f"\\({fmt(get(nul_raw, 'nonestimable_fraction'), 3)}\\)"]))
+    lines.append(latex_row(["Component disagreement", "routes to inconclusive", f"\\({int(bool(get(inj_raw, 'component_disagreement', False)))}\\)", f"\\({int(bool(get(nul_raw, 'component_disagreement', False)))}\\)"]))
+    lines.append(latex_row(["Estimability conclusion-changing", "selection qualification", f"\\({int(bool(get(inj_raw, 'estimability_conclusion_changing', False)))}\\)", f"\\({int(bool(get(nul_raw, 'estimability_conclusion_changing', False)))}\\)"]))
     lines.append(latex_row(["Support indicator", "final outcome class", f"\\({inj_ind['support']}\\)", f"\\({nul_ind['support']}\\)"]))
     lines.append(latex_row(["Selection-limited indicator", "final outcome class", f"\\({inj_ind['selection_limited']}\\)", f"\\({nul_ind['selection_limited']}\\)"]))
     lines.append(latex_row(["Diagnostic-failure indicator", "final outcome class", f"\\({inj_ind['diagnostic_failure']}\\)", f"\\({nul_ind['diagnostic_failure']}\\)"]))
     lines.append(latex_row(["Opposite-direction indicator", "final outcome class", f"\\({inj_ind['opposite_direction']}\\)", f"\\({nul_ind['opposite_direction']}\\)"]))
     lines.append(latex_row(["Null indicator", "final outcome class", f"\\({inj_ind['null']}\\)", f"\\({nul_ind['null']}\\)"]))
+    lines.append(latex_row(["Inconclusive indicator", "final outcome class", f"\\({inj_ind['inconclusive']}\\)", f"\\({nul_ind['inconclusive']}\\)"]))
     lines.append(r"\bottomrule")
     lines.append(r"\end{tabularx}")
     lines.append(r"\end{table}")
@@ -424,6 +364,17 @@ def make_latex(inj, nul, warnings):
 
 
 def main():
+    global RUN_HASH, RUN_DIR, OUT
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--run-hash", required=True)
+    ap.add_argument("--outdir", default=str(ROOT / "outputs"))
+    ap.add_argument("--output", default=None)
+    args = ap.parse_args()
+
+    RUN_HASH = args.run_hash
+    RUN_DIR = Path(args.outdir) / RUN_HASH
+    OUT = Path(args.output) if args.output else RUN_DIR / "tables" / "worked_decision_example.tex"
+
     with open(RUN_DIR / "summary" / "representative_index.json", "r", encoding="utf-8") as f:
         reps = json.load(f)
 

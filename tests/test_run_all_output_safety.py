@@ -1,4 +1,5 @@
-﻿import subprocess
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -7,11 +8,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run_run_all(*args):
+    env = os.environ.copy()
+    for key in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+        env[key] = "1"
     return subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "run_all.py"), *args],
         cwd=ROOT,
         text=True,
         capture_output=True,
+        env=env,
+        timeout=120,
     )
 
 
