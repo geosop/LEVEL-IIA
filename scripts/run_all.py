@@ -214,6 +214,7 @@ def main():
                 "the endpoint-by-delay interaction diagnostic fires throughout."
             ),
             label="tab:si-collider-sweep",
+            run_hash=run_hash,
         )
 
     oc_csv = run_dir / "summary" / "operating_characteristics.csv"
