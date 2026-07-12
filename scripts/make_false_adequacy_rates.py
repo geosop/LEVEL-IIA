@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Derive false-adequacy rates from operating-characteristics outputs.
 
 A false-adequacy classification occurs when a material endpoint-level departure
@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Optional
 
 
-DEFAULT_FROZEN_RUN_HASH = "f930a51c1c594275"
 Z_95 = 1.959963984540054
 P_FA_MAX = 0.05
 
@@ -90,7 +89,9 @@ def derive_false_adequacy_rows(csv_path: Path) -> list[dict[str, str]]:
         k = int(float(source["null_n"]))
         low, high = _wilson_interval(k, n)
         rate = k / n
-        run_hash = source.get("run_hash", "") or DEFAULT_FROZEN_RUN_HASH
+        run_hash = source.get("run_hash", "")
+        if not run_hash:
+            raise ValueError("source operating-characteristics row lacks run_hash")
         source_label = (
             f"outputs/{run_hash}/summary/operating_characteristics.csv"
             if run_hash

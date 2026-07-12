@@ -183,7 +183,8 @@ def main():
             f"          support={s['support_rate']:.3f} null={s['null_rate']:.3f} "
             f"selLim={s['selection_limited_rate']:.3f} "
             f"diagF={s['diagnostic_failure_rate']:.3f} "
-            f"oppDir={s['opposite_direction_rate']:.3f}"
+            f"oppDiag={s['opposite_direction_rate']:.3f} "
+            f"inconcl={s['inconclusive_rate']:.3f}"
         )
 
     all_done = (
@@ -213,6 +214,7 @@ def main():
                 "the endpoint-by-delay interaction diagnostic fires throughout."
             ),
             label="tab:si-collider-sweep",
+            run_hash=run_hash,
         )
 
     oc_csv = run_dir / "summary" / "operating_characteristics.csv"

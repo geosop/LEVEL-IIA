@@ -1,10 +1,10 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Verify benchmark output invariants and operating-characteristic thresholds.
 
 Usage:
-    python scripts/verify_outputs.py --run-hash f930a51c1c594275
-    python scripts/verify_outputs.py --smoke
-    python scripts/verify_outputs.py --run-hash f930a51c1c594275 --strict-manuscript
+    python scripts/verify_outputs.py --run-hash <RUN_HASH>
+    python scripts/verify_outputs.py --smoke --outdir <OUTPUT_ROOT>
+    python scripts/verify_outputs.py --run-hash <RUN_HASH> --strict-manuscript
 
 The verifier has two layers.
 
@@ -28,10 +28,10 @@ The script exits non-zero on failure so it can gate local release checks or CI.
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import sys
 from pathlib import Path
-import sys
 
 ROOT_FOR_IMPORT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT_FOR_IMPORT / "src"))
@@ -78,22 +78,31 @@ DIAGNOSTIC_RATE_COLS = [
     "leak_fire_rate",
     "delivery_fire_rate",
     "retention_fire_rate",
-    "gate_pass_rate",
+    "gate_applicable_rate",
     "collider_inter_fire_rate",
     "collider_fire_rate",
+    "component_disagreement_rate",
+    "estimability_summary_fire_rate",
+    "estimability_conclusion_change_rate",
+    "leverage_failure_rate",
 ]
+
+CONDITIONAL_RATE_COLS = {
+    "gate_pass_given_applicable_rate": "gate_applicable_rate",
+}
 
 
 CHECKS = [
     # (scenario, column, op, threshold, description)
     ("clean_null", "support_rate", "<=", 0.05, "false-support control (anchor)"),
     ("clean_null", "null_rate", ">=", 0.85, "anchor classified null"),
+    ("clean_null", "inconclusive_rate", "<=", 0.15, "anchor disagreement/uncertainty bounded"),
     ("injected_residual", "support_rate", ">=", 0.70, "recovery power"),
     ("leakage", "diagnostic_failure_rate", ">=", 0.90, "leakage audit blocks"),
     ("leakage", "support_rate", "<=", 0.02, "leakage not supported"),
     ("selection_standard", "retention_fire_rate", ">=", 0.90, "selection audit fires"),
     ("selection_standard", "support_rate", "<=", 0.02, "selection not supported"),
-    ("collider_selection", "gate_pass_rate", ">=", 0.90, "scalar gate misses collider"),
+    ("collider_selection", "gate_pass_given_applicable_rate", ">=", 0.90, "scalar gate misses collider when applicable"),
     ("collider_selection", "collider_fire_rate", ">=", 0.90, "interaction catches collider"),
     ("collider_selection", "support_rate", "<=", 0.02, "collider never supported"),
     ("collider_selection", "selection_limited_rate", ">=", 0.80, "collider -> selection-limited"),
@@ -103,55 +112,7 @@ CHECKS = [
 ]
 
 
-MANUSCRIPT_LOCKED_COUNTS = {'clean_null': {'M': 1200,
-                'support_n': 0,
-                'selection_limited_n': 5,
-                'diagnostic_failure_n': 3,
-                'null_n': 1192,
-                'opposite_direction_n': 0,
-                'inconclusive_n': 0},
- 'injected_residual': {'M': 1200,
-                       'support_n': 1191,
-                       'selection_limited_n': 7,
-                       'diagnostic_failure_n': 2,
-                       'null_n': 0,
-                       'opposite_direction_n': 0,
-                       'inconclusive_n': 0},
- 'leakage': {'M': 1200,
-             'support_n': 0,
-             'selection_limited_n': 0,
-             'diagnostic_failure_n': 1200,
-             'null_n': 0,
-             'opposite_direction_n': 0,
-             'inconclusive_n': 0},
- 'selection_standard': {'M': 1200,
-                        'support_n': 0,
-                        'selection_limited_n': 1200,
-                        'diagnostic_failure_n': 0,
-                        'null_n': 0,
-                        'opposite_direction_n': 0,
-                        'inconclusive_n': 0},
- 'collider_selection': {'M': 1200,
-                        'support_n': 0,
-                        'selection_limited_n': 1199,
-                        'diagnostic_failure_n': 1,
-                        'null_n': 0,
-                        'opposite_direction_n': 0,
-                        'inconclusive_n': 0},
- 'adversarial_null': {'M': 1200,
-                      'support_n': 0,
-                      'selection_limited_n': 6,
-                      'diagnostic_failure_n': 1,
-                      'null_n': 1193,
-                      'opposite_direction_n': 0,
-                      'inconclusive_n': 0},
- 'opposite_direction': {'M': 1200,
-                        'support_n': 0,
-                        'selection_limited_n': 10,
-                        'diagnostic_failure_n': 3,
-                        'null_n': 0,
-                        'opposite_direction_n': 1187,
-                        'inconclusive_n': 0}}
+MANUSCRIPT_LOCK_PATH = ROOT / "manuscript" / "certified_run_counts.json"
 
 
 
@@ -188,6 +149,8 @@ def _check_required_columns(df: pd.DataFrame, errors: list[str]) -> None:
     required = {"scenario", "M"}
     required.update(col for pair in OUTCOME_COUNT_RATE_PAIRS for col in pair)
     required.update(DIAGNOSTIC_RATE_COLS)
+    required.update(CONDITIONAL_RATE_COLS)
+    required.update(CONDITIONAL_RATE_COLS.values())
 
     missing = sorted(required.difference(df.columns))
     if missing:
@@ -291,6 +254,48 @@ def _check_internal_invariants(df: pd.DataFrame, errors: list[str]) -> None:
             elif not (0.0 <= rate <= 1.0):
                 _fail(errors, f"{scen}: {rate_col}={rate:.12g} outside [0, 1]")
 
+
+        for rate_col, applicable_col in CONDITIONAL_RATE_COLS.items():
+            rate = float(row[rate_col])
+            applicable_rate = float(row[applicable_col])
+
+            if not math.isfinite(applicable_rate):
+                _fail(
+                    errors,
+                    f"{scen}: {applicable_col} is not finite: {applicable_rate}",
+                )
+            elif not (0.0 <= applicable_rate <= 1.0):
+                _fail(
+                    errors,
+                    (
+                        f"{scen}: {applicable_col}={applicable_rate:.12g} "
+                        "outside [0, 1]"
+                    ),
+                )
+            elif applicable_rate == 0.0:
+                if math.isfinite(rate):
+                    _fail(
+                        errors,
+                        (
+                            f"{scen}: {rate_col} must be NaN when "
+                            f"{applicable_col}=0"
+                        ),
+                    )
+            elif not math.isfinite(rate):
+                _fail(
+                    errors,
+                    (
+                        f"{scen}: {rate_col} must be finite when "
+                        f"{applicable_col}>0"
+                    ),
+                )
+            elif not (0.0 <= rate <= 1.0):
+                _fail(
+                    errors,
+                    f"{scen}: {rate_col}={rate:.12g} outside [0, 1]",
+                )
+
+
     if not errors:
         _ok("all internal count/rate and mutual-exclusivity invariants pass")
 
@@ -320,27 +325,49 @@ def _check_operating_thresholds(df_indexed: pd.DataFrame, smoke: bool, errors: l
             _fail(errors, f"{desc}: {scen}.{col}={rate_display(v)} not {op} {rate_display(t)}")
 
 
-def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, errors: list[str]) -> None:
-    expected_hash = "f930a51c1c594275"
+def _load_manuscript_lock(errors: list[str]) -> dict | None:
+    if not MANUSCRIPT_LOCK_PATH.exists():
+        _fail(errors, f"manuscript lock file is missing: {MANUSCRIPT_LOCK_PATH}")
+        return None
+    try:
+        data = json.loads(MANUSCRIPT_LOCK_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        _fail(errors, f"cannot read manuscript lock file: {exc}")
+        return None
+    if not isinstance(data, dict) or "run_hash" not in data or "counts" not in data:
+        _fail(errors, "manuscript lock file must contain run_hash and counts")
+        return None
+    return data
+
+
+def _check_locked_manuscript_counts(
+    df_indexed: pd.DataFrame, run_hash: str, errors: list[str]
+) -> None:
+    lock = _load_manuscript_lock(errors)
+    if lock is None:
+        return
+    expected_hash = str(lock["run_hash"])
     if run_hash != expected_hash:
         _fail(
             errors,
             (
                 "--strict-manuscript was requested, but run hash is "
-                f"{run_hash}; expected {expected_hash}"
+                f"{run_hash}; the committed manuscript lock expects {expected_hash}"
             ),
         )
         return
 
-    for scen, expected in MANUSCRIPT_LOCKED_COUNTS.items():
+    for scen, expected in lock["counts"].items():
         if scen not in df_indexed.index:
             _fail(errors, f"strict manuscript check missing scenario: {scen}")
             continue
-
         row = df_indexed.loc[scen]
         for col, expected_value in expected.items():
+            if col not in row.index:
+                _fail(errors, f"strict manuscript check missing column: {col}")
+                continue
             observed = int(row[col])
-            if observed != expected_value:
+            if observed != int(expected_value):
                 _fail(
                     errors,
                     (
@@ -350,7 +377,30 @@ def _check_locked_manuscript_counts(df_indexed: pd.DataFrame, run_hash: str, err
                 )
 
     if not errors:
-        _ok("strict manuscript counts match run f930a51c1c594275")
+        _ok(f"strict manuscript counts match committed run {expected_hash}")
+
+
+def _write_manuscript_lock(df_indexed: pd.DataFrame, run_hash: str) -> None:
+    counts = {}
+    count_cols = ["M"] + [count for count, _ in OUTCOME_COUNT_RATE_PAIRS]
+    for scen in REQUIRED_SCENARIOS:
+        if scen not in df_indexed.index:
+            raise ValueError(f"cannot lock incomplete run; missing scenario {scen}")
+        row = df_indexed.loc[scen]
+        counts[scen] = {col: int(row[col]) for col in count_cols}
+    payload = {
+        "run_hash": str(run_hash),
+        "counts": counts,
+        "note": (
+            "Generated only after verify_outputs.py passes the full non-smoke "
+            "operating-characteristic and false-adequacy checks."
+        ),
+    }
+    MANUSCRIPT_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    MANUSCRIPT_LOCK_PATH.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    _ok(f"wrote manuscript count lock: {MANUSCRIPT_LOCK_PATH}")
 
 
 def _check_false_adequacy_rates(
@@ -470,7 +520,12 @@ def main() -> None:
     ap.add_argument(
         "--strict-manuscript",
         action="store_true",
-        help="also require exact outcome counts for manuscript run f930a51c1c594275",
+        help="require the run hash and exact outcome counts in manuscript/certified_run_counts.json",
+    )
+    ap.add_argument(
+        "--write-manuscript-lock",
+        action="store_true",
+        help="after a successful full verification, freeze this run's exact outcome counts",
     )
     args = ap.parse_args()
 
@@ -512,6 +567,14 @@ def main() -> None:
 
     if args.strict_manuscript:
         _check_locked_manuscript_counts(df_indexed, run_hash, errors)
+
+    if args.write_manuscript_lock:
+        if args.smoke:
+            _fail(errors, "--write-manuscript-lock is not permitted for a smoke run")
+        elif errors:
+            print("[warn] manuscript lock not written because verification failed")
+        else:
+            _write_manuscript_lock(df_indexed, run_hash)
 
     print(f"[verify] run {run_hash}: {'PASS' if not errors else 'FAIL'}")
     sys.exit(0 if not errors else 1)

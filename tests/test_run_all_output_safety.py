@@ -1,4 +1,5 @@
-﻿import subprocess
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -7,11 +8,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run_run_all(*args):
+    env = os.environ.copy()
+    for key in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+        env[key] = "1"
     return subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "run_all.py"), *args],
         cwd=ROOT,
         text=True,
         capture_output=True,
+        env=env,
+        timeout=120,
     )
 
 
@@ -108,4 +114,30 @@ def test_run_all_refuses_resume_when_run_directory_absent(tmp_path):
     assert resumed.returncode != 0
     assert "Cannot resume because the deterministic run directory does not exist" in (
         resumed.stdout + resumed.stderr
+    )
+
+
+def test_collider_table_writer_receives_explicit_run_hash():
+    """Custom output roots must not rely on outputs/<hash> path inference."""
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    source_path = root / "scripts" / "run_all.py"
+    tree = ast.parse(source_path.read_text(encoding="utf-8"))
+
+    calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "collider_subtable_latex"
+    ]
+
+    assert len(calls) == 1
+    assert any(
+        keyword.arg == "run_hash"
+        and isinstance(keyword.value, ast.Name)
+        and keyword.value.id == "run_hash"
+        for keyword in calls[0].keywords
     )

@@ -66,3 +66,44 @@ def test_resolved_positive_slope_is_opposite_direction():
     out["p_rand_greater"] = 0.001
     out["lcb"] = 50.0
     assert decide(out, {"alpha": 0.05, "N_min": 10}) == "opposite_direction"
+
+def test_negative_inference_without_negative_magnitude_is_inconclusive():
+    out = _base_out()
+    out["p_rand_less"] = 0.001
+    out["ucb"] = -40.0  # does not clear -beta_min=-45
+    assert decide(out, {"alpha": 0.05, "N_min": 10}) == "inconclusive"
+
+
+def test_negative_magnitude_without_negative_inference_is_inconclusive():
+    out = _base_out()
+    out["p_rand_less"] = 0.20
+    out["ucb"] = -50.0
+    assert decide(out, {"alpha": 0.05, "N_min": 10}) == "inconclusive"
+
+
+def test_positive_inference_without_positive_magnitude_is_inconclusive():
+    out = _base_out()
+    out["p_rand_greater"] = 0.001
+    out["lcb"] = 40.0  # does not clear beta_min=45
+    assert decide(out, {"alpha": 0.05, "N_min": 10}) == "inconclusive"
+
+
+def test_positive_magnitude_without_positive_inference_is_inconclusive():
+    out = _base_out()
+    out["p_rand_greater"] = 0.20
+    out["lcb"] = 50.0
+    assert decide(out, {"alpha": 0.05, "N_min": 10}) == "inconclusive"
+
+
+def test_collider_failure_precedes_low_estimable_count():
+    out = _base_out()
+    out["N"] = 5
+    out["collider"]["fired"] = True
+    assert decide(out, {"alpha": 0.05, "N_min": 10}) == "selection_limited"
+
+
+def test_hard_diagnostic_failure_precedes_low_estimable_count():
+    out = _base_out()
+    out["N"] = 5
+    out["audits"]["leakage"]["fired"] = True
+    assert decide(out, {"alpha": 0.05, "N_min": 10}) == "diagnostic_failure"

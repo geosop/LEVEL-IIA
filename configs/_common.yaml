@@ -1,3 +1,9 @@
 # Shared design constants (documented here; each scenario file repeats the
 # fields it uses so every benchmark number is traceable to a single file).
 # Design anchor: T0 = 20 ms, five assigned-delay bins, 24 participants, 24 planned trials per assigned-delay bin.
+
+# Participant-level estimability defaults used in every scenario:
+# at least 20 usable retained trials, at least three assigned-delay levels,
+# and at least 50% of planned denominator leverage. Non-estimable slopes are
+# bounded at three label-blind residual-scale units using the participant's exact
+# planned numerator-to-denominator design ratio.

@@ -17,6 +17,27 @@ from scipy.special import logsumexp
 # --------------------------------------------------------------------------- #
 # Estimand
 # --------------------------------------------------------------------------- #
+
+
+def center_within_participant(values, participant):
+    """Centre a trial-level design variable within participant.
+
+    The assignment-isolation slope includes a participant/stratum intercept, so
+    the retained assigned-delay regressor must sum to zero within each retained
+    participant rather than merely around the planned grid mean.
+    """
+    values = np.asarray(values, dtype=float)
+    participant = np.asarray(participant)
+    if values.shape != participant.shape:
+        raise ValueError("values and participant must have the same shape")
+    out = np.full(values.shape, np.nan, dtype=float)
+    for pid in np.unique(participant):
+        m = participant == pid
+        finite = m & np.isfinite(values)
+        if np.any(finite):
+            out[finite] = values[finite] - np.mean(values[finite])
+    return out
+
 def participant_slopes(resid, participant, tau_centered):
     """Return per-participant slopes, denominators, and the equal-participant
     estimate.

@@ -51,3 +51,40 @@ slope above the floor. In that regime the scalar marginal-imbalance gate passes
 a supported classification. This is the scope boundary the manuscript states: the
 scalar selection gate protects only against selection pathways represented by the
 declared audited imbalance summary and selection-model class.
+
+
+## Retained-delay centring and participant estimability
+
+The assignment-isolation slope includes a participant intercept. Retained assigned
+delays are therefore centred at each participant's realised retained mean before
+the numerator, denominator, randomisation statistic and leverage diagnostics are
+computed. The materiality floor uses the corresponding effective retained
+within-participant delay scale.
+
+Participant eligibility is fixed before assignment; slope estimability is assessed
+after retention without using the sign or magnitude of the participant slope. The
+prospective rule records retained usable trials, distinct retained delay levels,
+and retained denominator leverage relative to the participant's planned design.
+Non-estimable participants are not silently assigned zero slope. Their possible
+contribution is bounded using a declared label-blind residual-scale multiple and
+the exact planned design ratio, and the conclusion-opposing eligible-population
+bounds are applied separately to negative support, the positive diagnostic and
+affirmative adequacy. Insufficient bound information is inconclusive; a plausible
+participant-selection distortion is selection-limited.
+
+## Classifier semantics
+
+The negative tail is the sole confirmatory level-alpha hypothesis. The positive
+tail is a prespecified opposite-direction diagnostic. Inferential and magnitude
+components must agree within a direction; any component disagreement is routed to
+`inconclusive` and can never be counted as `forward_only_adequate`.
+
+The scalar trial-selection sensitivity gate is evaluated only when a material
+directional departure has already resolved. It asks whether audited selection
+could manufacture that departure and is not an affirmative-null gate. Retention,
+collider and participant-estimability qualifications apply independently.
+
+The executable classifier uses the frozen-residual analysis. An unadjusted
+committed-endpoint slope can be reported as a descriptive adjustment-sensitivity
+diagnostic, but it is not a support requirement and sign disagreement is not an
+automatic veto.

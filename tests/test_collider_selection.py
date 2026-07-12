@@ -15,13 +15,16 @@ def test_collider_is_selection_limited_not_supported():
 
 def test_scalar_gate_misses_collider_but_diagnostic_catches():
     cfg = yaml.safe_load(open(ROOT / "configs/collider_selection.yaml"))
-    gate_pass, inter_fire = 0, 0
+    applicable, gate_pass, inter_fire = 0, 0, 0
     for i in range(20):
         out = run_one(cfg, 105, i)
-        gate_pass += out["selection_gate"]["passed"]
+        is_applicable = bool(out["selection_gate"].get("applicable", False))
+        applicable += is_applicable
+        gate_pass += bool(out["selection_gate"]["passed"]) and is_applicable
         inter_fire += out["collider"]["interaction"]["fired"]
-    assert gate_pass >= 18      # scalar gate passes (misses) almost always
-    assert inter_fire >= 18     # interaction diagnostic fires (catches) almost always
+    assert applicable >= 10
+    assert gate_pass / applicable >= 0.90  # scalar gate misses when applicable
+    assert inter_fire >= 18                # interaction diagnostic catches almost always
 
 def test_full_sample_obeys_boundary():
     # before selection, A_pre is uncorrelated with the assigned delay

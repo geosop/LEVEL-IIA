@@ -10,3 +10,5 @@ manuscript/*.out
 .venv/
 
 .venv312/
+outputs_repair_smoke/
+outputs_candidate/
