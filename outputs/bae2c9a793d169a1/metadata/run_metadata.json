@@ -1,0 +1,29 @@
+{
+  "run_hash": "bae2c9a793d169a1",
+  "seed_family": "full:M=1200",
+  "timestamp_utc": "2026-07-11T13:49:37.852123+00:00",
+  "code_version": "1.1.0",
+  "source_fingerprint": "1d816059bdd0ee1acd82ae6d3c5ca428cbc727fe94805a2555f41a36b8d5a43d",
+  "git_commit": "ea695634edb1f26d1c484d098024055c1612fde3",
+  "python": "3.12.7",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "packages": {
+    "numpy": "2.5.0",
+    "scipy": "1.18.0",
+    "pandas": "3.0.3",
+    "matplotlib": "3.11.0",
+    "yaml": "6.0.3",
+    "python": "3.12.7"
+  },
+  "script_path": "scripts\\run_all.py",
+  "scenarios": [
+    "anchor",
+    "injected_residual",
+    "leakage",
+    "selection",
+    "collider_selection",
+    "adversarial_null",
+    "opposite_direction"
+  ],
+  "M": 1200
+}

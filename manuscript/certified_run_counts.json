@@ -3,8 +3,8 @@
     "adversarial_null": {
       "M": 1200,
       "diagnostic_failure_n": 1,
-      "inconclusive_n": 0,
-      "null_n": 1193,
+      "inconclusive_n": 3,
+      "null_n": 1190,
       "opposite_direction_n": 0,
       "selection_limited_n": 6,
       "support_n": 0
@@ -12,8 +12,8 @@
     "clean_null": {
       "M": 1200,
       "diagnostic_failure_n": 3,
-      "inconclusive_n": 0,
-      "null_n": 1192,
+      "inconclusive_n": 116,
+      "null_n": 1076,
       "opposite_direction_n": 0,
       "selection_limited_n": 5,
       "support_n": 0
@@ -64,6 +64,6 @@
       "support_n": 0
     }
   },
-  "note": "Legacy certified run. Replace only after the corrected full run passes verification.",
-  "run_hash": "f930a51c1c594275"
+  "note": "Generated only after verify_outputs.py passes the full non-smoke operating-characteristic and false-adequacy checks.",
+  "run_hash": "bae2c9a793d169a1"
 }

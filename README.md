@@ -22,29 +22,30 @@ directory. Because the manuscript and SI source files are maintained outside thi
 repository, the run hash is the reproducibility anchor for benchmark numbers, not
 a pointer to manuscript source files.
 
-### Certification transition status
+### Certified version 1.1.0 benchmark
 
-Version 1.1.0 changes the non-compensatory classifier, participant-level
-estimability qualification, retained-design leverage handling, conditional
-selection-gate reporting, and benchmark provenance. The currently committed
-lock points to legacy run `f930a51c1c594275`, which was generated under version
-1.0.0. That run is retained only for historical reproduction and does not
-certify the revised version 1.1.0 pipeline.
+Version 1.1.0 is certified against full benchmark run
+`bae2c9a793d169a1`, generated with 1,200 Monte Carlo datasets per
+scenario under source commit
+`ea695634edb1f26d1c484d098024055c1612fde3`. The run passed the declared
+operating-characteristic, invariant, false-adequacy and strict
+manuscript-lock checks. Its exact mutually exclusive outcome counts are
+stored in `manuscript/certified_run_counts.json`.
 
-After this source revision is committed, a complete candidate benchmark with
-1,200 Monte Carlo datasets per scenario and the associated magnitude-indexed
-adequacy sweep will be generated and independently verified. Only after those
-checks pass will the candidate run be promoted, the manuscript count lock be
-replaced, and the README, generated tables, figures, release metadata and
-external manuscript references be updated. Smoke runs are execution checks
-only and must not be cited as certified results.
+The canonical outputs are stored under
+`outputs/bae2c9a793d169a1/`. Smoke and exploratory runs are development
+checks only and must not be cited as certified results.
 
-The currently locked legacy full benchmark run is identified in
-`manuscript/certified_run_counts.json`. That committed lock preserves the exact
-run hash and mutually exclusive outcome counts from the last certified
-manuscript-facing benchmark package. It will be replaced only after the revised
-version 1.1.0 full run passes all verification and adequacy checks. The planned
-full-run design is:
+The false-adequacy operating-characteristic sweep found zero
+false-adequacy classifications in 1,200 datasets per direction and
+magnitude across the tested range
+`|Delta| in {20, 30, 40, 50, 60, 75, 90}`. False-adequacy control was
+therefore certified down to the smallest tested magnitude,
+`|Delta| = 20`. This certification concerns protection against an
+erroneous adequacy classification and does not by itself establish high
+directional-support power at that magnitude.
+
+The certified full-run design is:
 
 ```text
 M:        1200 Monte Carlo datasets per scenario
@@ -55,37 +56,37 @@ B:        999 participant bootstrap replicates
 support:  [0, 20] ms
 ```
 
-The corresponding output directory is `outputs/<certified-run-hash>/`, where
-`<certified-run-hash>` is read from the committed lock file.
-
-The canonical numeric source for the certified operating characteristics is
+The canonical numeric source for the certified operating characteristics is:
 
 ```text
-outputs/<certified-run-hash>/summary/operating_characteristics.csv
+outputs/bae2c9a793d169a1/summary/operating_characteristics.csv
 ```
 
-The false-adequacy rates under material endpoint-level departures are derived
-from the same certified operating-characteristics CSV and written as
+The material-departure false-adequacy results are stored in:
 
 ```text
-outputs/<certified-run-hash>/summary/false_adequacy_rates.csv
+outputs/bae2c9a793d169a1/summary/false_adequacy_rates.csv
+outputs/bae2c9a793d169a1/summary/adequacy_operating_characteristic.csv
 ```
 
-An operating point licenses affirmative-null certification only if the
-false-adequacy point estimate and the Wilson 95% upper confidence bound are both
-at or below `p_FA_max = 0.05`.
+An operating point licenses false-adequacy certification only when both the
+false-adequacy point estimate and its Wilson 95% upper confidence bound are at
+or below `p_FA_max = 0.05`.
 
-The manuscript-facing LaTeX tables are generated from the certified CSV as split
-design and outcome tables:
+The manuscript-facing LaTeX tables are generated from the certified outputs:
 
 ```text
-outputs/<certified-run-hash>/tables/operating_characteristics_design.tex
-outputs/<certified-run-hash>/tables/operating_characteristics_outcomes.tex
+outputs/bae2c9a793d169a1/tables/operating_characteristics_design.tex
+outputs/bae2c9a793d169a1/tables/operating_characteristics_outcomes.tex
+outputs/bae2c9a793d169a1/tables/adequacy_operating_characteristic.tex
+outputs/bae2c9a793d169a1/tables/collider_sweep.tex
+outputs/bae2c9a793d169a1/tables/worked_decision_example.tex
 ```
 
-The earlier lower-retained-trial reference run is retained only as a
-pipeline-architecture demonstration and is not used to license affirmative-null
-certification.
+Earlier certified and lower-retained-trial reference runs are retained only for
+historical reproduction and pipeline-architecture comparison. They do not
+certify version 1.1.0.
+
 ## What the benchmark establishes
 
 The locked pipeline consists of:
