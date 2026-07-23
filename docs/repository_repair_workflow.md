@@ -6,10 +6,13 @@ run, and only then promotes generated artefacts for manuscript editing.
 
 ## 1. Protect the current repository state
 
-Run in PowerShell 7 from outside the repository:
+Run in PowerShell 7 from the repository root:
 
 ```powershell
-$Repo = 'C:\Users\geosg\Desktop\CRI_GitHub\cri-leveliia-benchmark'
+$Repo = (git rev-parse --show-toplevel).Trim()
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($Repo)) {
+    throw 'Run this workflow from inside the repository.'
+}
 Set-Location $Repo
 
 git rev-parse --show-toplevel
@@ -234,7 +237,7 @@ Do not assume that the earlier certified magnitude remains unchanged.
 ## 10. Generate all manuscript-facing artefacts
 
 Generate the worked example before `make_tables.py`, because `make_tables.py`
-copies every non-legacy generated table into the local manuscript workspaces:
+copies every non-legacy generated table into the local manuscript workspace:
 
 ```powershell
 python scripts\make_worked_example.py --run-hash $NewHash
@@ -266,8 +269,7 @@ pytest -q tests\test_adequacy_operating_characteristic.py
 ```powershell
 git add outputs\$NewHash outputs\LATEST_RUN.txt `
         manuscript\certified_run_counts.json `
-        manuscript\tables manuscript\figures `
-        CRI_Perspective\Tables CRI_Perspective\Figures
+        manuscript\tables manuscript\figures
 
 git commit -m "Certify classifier-aligned benchmark run $NewHash"
 ```

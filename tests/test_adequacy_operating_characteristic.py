@@ -10,7 +10,6 @@ LOCK = json.loads((ROOT / "manuscript" / "certified_run_counts.json").read_text(
 RUN_HASH = str(LOCK["run_hash"])
 CSV_PATH = ROOT / "outputs" / RUN_HASH / "summary" / "adequacy_operating_characteristic.csv"
 OUTPUT_TABLE = ROOT / "outputs" / RUN_HASH / "tables" / "adequacy_operating_characteristic.tex"
-PERSPECTIVE_TABLE = ROOT / "CRI_Perspective" / "Tables" / "adequacy_operating_characteristic.tex"
 MANUSCRIPT_TABLE = ROOT / "manuscript" / "tables" / "adequacy_operating_characteristic.tex"
 
 EXPECTED_DELTAS = [20.0, 30.0, 40.0, 50.0, 60.0, 75.0, 90.0]
@@ -77,7 +76,6 @@ def test_adequacy_certificate_is_monotone_wilson_envelope() -> None:
 
 def test_adequacy_table_copies_match_generated_output() -> None:
     assert OUTPUT_TABLE.exists()
-    assert PERSPECTIVE_TABLE.exists()
     assert MANUSCRIPT_TABLE.exists()
 
     generated = OUTPUT_TABLE.read_text(encoding="utf-8")
@@ -111,5 +109,4 @@ def test_adequacy_table_copies_match_generated_output() -> None:
     assert set(statuses) <= {"pass", "fail"}
     assert "pass" in statuses
 
-    assert PERSPECTIVE_TABLE.read_text(encoding="utf-8") == generated
     assert MANUSCRIPT_TABLE.read_text(encoding="utf-8") == generated

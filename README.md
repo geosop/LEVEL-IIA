@@ -149,7 +149,7 @@ The `adversarial_null` scenario uses `sequential_evalue`.
 
 ```bash
 conda env create -f environment.yml
-conda activate cri-leveliia
+conda activate leveliia
 pip install -e .
 ```
 
@@ -272,19 +272,17 @@ outputs/<run_hash>/
   metadata/run_metadata.json
 ```
 
-Generated benchmark artefacts can be exported for an external manuscript workflow.
-Some helper scripts may copy generated tables or figures into local manuscript
-workspaces such as:
+Generated benchmark artefacts can be exported to the stable manuscript-facing
+paths:
 
 ```text
 manuscript/tables/
-CRI_Perspective/Tables/
-CRI_Perspective/Figures/
+manuscript/figures/
 ```
 
-These local manuscript workspaces are not part of the public manuscript source
-package. The Perspective manuscript and SI `.tex` files remain outside this
-repository and outside the Zenodo software archive.
+These paths contain generated artefact copies only. The Perspective manuscript
+and SI `.tex` files remain outside this repository and outside the Zenodo software
+archive.
 
 The SI worked example is generated from the locked representative-index file and the frozen per-replicate rows.
 
@@ -349,7 +347,7 @@ This writes:
 - `outputs/<run_hash>/summary/adequacy_operating_characteristic.csv`
 - `outputs/<run_hash>/tables/adequacy_operating_characteristic.tex`
 - `outputs/<run_hash>/metadata/adequacy_sweep_metadata.json`
-- copied manuscript tables under `CRI_Perspective/Tables/` and `manuscript/tables/`
+- copied manuscript table under `manuscript/tables/`
 
 The certified magnitude is defined from the monotone Wilson upper-bound envelope:
 for a given direction, all evaluated magnitudes at or above the certified

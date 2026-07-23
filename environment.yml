@@ -1,4 +1,4 @@
-name: cri-leveliia
+name: leveliia
 channels:
   - conda-forge
 dependencies:

@@ -2,9 +2,7 @@
 """Rebuild manuscript-facing LaTeX tables from a frozen run.
 
 This script generates the split S5/S6 operating-characteristics tables from the
-frozen CSV, copies the split manuscript-facing tables into both:
-  - manuscript/tables/
-  - CRI_Perspective/Tables/
+frozen CSV and copies the manuscript-facing tables into manuscript/tables/.
 
 It deliberately does not copy the legacy wide operating_characteristics.tex into
 the manuscript-facing table directories.
@@ -70,7 +68,6 @@ def main() -> None:
 
     # Manuscript-facing package copies.
     copy_required(run_tables, ROOT / "manuscript" / "tables", split_names)
-    copy_required(run_tables, ROOT / "CRI_Perspective" / "Tables", split_names)
 
     # Preserve non-operating-characteristics generated tables, such as collider_sweep.
     for tex in run_tables.glob("*.tex"):
@@ -80,8 +77,7 @@ def main() -> None:
         if tex.name in split_names:
             continue
         shutil.copy(tex, ROOT / "manuscript" / "tables" / tex.name)
-        shutil.copy(tex, ROOT / "CRI_Perspective" / "Tables" / tex.name)
-        print(f"[make_tables] {tex.name} -> manuscript/tables/ and CRI_Perspective/Tables/")
+        print(f"[make_tables] {tex.name} -> manuscript/tables/")
 
     print("[make_tables] done.")
 
