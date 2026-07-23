@@ -368,12 +368,9 @@ def run_sweep(
     metadata_path.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
 
     if copy_tables:
-        for dst_dir in (
-            ROOT / "CRI_Perspective" / "Tables",
-            ROOT / "manuscript" / "tables",
-        ):
-            dst_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(table_path, dst_dir / table_path.name)
+        dst_dir = ROOT / "manuscript" / "tables"
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(table_path, dst_dir / table_path.name)
 
     print(f"[adequacy] wrote {csv_path}")
     print(f"[adequacy] wrote {table_path}")

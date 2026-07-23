@@ -519,18 +519,12 @@ def main() -> None:
     man.mkdir(parents=True, exist_ok=True)
 
     out_png = Path(str(out_pdf).replace(".pdf", ".png"))
-    shutil.copy(out_pdf, man / "CRI_synthetic_validation.pdf")
-    shutil.copy(out_png, man / "CRI_synthetic_validation.png")
-
-    persp = ROOT / "CRI_Perspective" / "Figures"
-    persp.mkdir(parents=True, exist_ok=True)
-    shutil.copy(out_pdf, persp / "CRI_synthetic_validation.pdf")
-    shutil.copy(out_png, persp / "CRI_synthetic_validation.png")
+    shutil.copy(out_pdf, man / "LEVELIIA_synthetic_validation.pdf")
+    shutil.copy(out_png, man / "LEVELIIA_synthetic_validation.png")
 
     print(f"[make_figure2] wrote {out_pdf}")
-    print("[make_figure2] copied manuscript/figures/CRI_synthetic_validation.pdf")
-    print("[make_figure2] copied manuscript/figures/CRI_synthetic_validation.png")
-    print("[make_figure2] copied CRI_Perspective/Figures/CRI_synthetic_validation.{pdf,png}")
+    print("[make_figure2] copied manuscript/figures/LEVELIIA_synthetic_validation.pdf")
+    print("[make_figure2] copied manuscript/figures/LEVELIIA_synthetic_validation.png")
 
 
 if __name__ == "__main__":

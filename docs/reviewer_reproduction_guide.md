@@ -4,7 +4,7 @@
 
 ```bash
 conda env create -f environment.yml
-conda activate cri-leveliia
+conda activate leveliia
 pip install -e .
 ```
 
