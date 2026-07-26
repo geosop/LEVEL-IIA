@@ -23,6 +23,7 @@ import sys
 from pathlib import Path
 
 import yaml
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -73,6 +74,21 @@ def atomic_write_text(path: Path, text: str) -> None:
     tmp.replace(path)
 
 
+def validate_resumed_raw(path: Path, expected_m: int) -> None:
+    df = pd.read_csv(path, usecols=["replicate"])
+    replicate = df["replicate"].astype(int)
+    if len(df) != expected_m:
+        raise ValueError(
+            f"{path}: found {len(df)} rows, expected M={expected_m}"
+        )
+    if replicate.nunique() != expected_m:
+        raise ValueError(f"{path}: replicate identifiers are not unique")
+    if set(replicate) != set(range(expected_m)):
+        raise ValueError(
+            f"{path}: replicate identifiers must be 0 through {expected_m - 1}"
+        )
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true", help="fast low-M run")
@@ -93,6 +109,7 @@ def main():
     ap.add_argument("--no-sweep", action="store_true")
     ap.add_argument("--outdir", default=str(ROOT / "outputs"))
     args = ap.parse_args()
+    git_dirty_at_start = MD.git_dirty()
 
     if args.smoke:
         M = args.M or 50
@@ -151,8 +168,13 @@ def main():
         srep_path = run_dir / "summary" / f"{n}_rep.json"
 
         if args.resume and raw_path.exists() and ssum_path.exists() and srep_path.exists():
+            validate_resumed_raw(raw_path, M)
             with ssum_path.open("r", encoding="utf-8") as fh:
                 s = json.load(fh)
+            if int(s.get("M", -1)) != M:
+                raise ValueError(
+                    f"{ssum_path}: summary M={s.get('M')} does not match {M}"
+                )
             with srep_path.open("r", encoding="utf-8") as fh:
                 rep_index[n] = json.load(fh)
             summaries.append(s)
@@ -161,7 +183,9 @@ def main():
 
         print(f"[run_all] {n}: M={M} ...", flush=True)
         df = B.run_scenario(cfg, M=M, base_seed=cfg["base_seed"])
-        df.to_csv(raw_path, index=False)
+        raw_tmp = raw_path.with_name(raw_path.name + ".tmp")
+        df.to_csv(raw_tmp, index=False)
+        raw_tmp.replace(raw_path)
 
         s = B.summarise(df, cfg, cfg["name"], cfg["generator"])
         s["run_hash"] = run_hash
@@ -174,10 +198,11 @@ def main():
             "base_seed": cfg["base_seed"],
         }
 
-        with ssum_path.open("w", encoding="utf-8") as fh:
-            json.dump(s, fh, indent=2)
-        with srep_path.open("w", encoding="utf-8") as fh:
-            json.dump(rep_index[n], fh, indent=2)
+        atomic_write_text(ssum_path, json.dumps(s, indent=2) + "\n")
+        atomic_write_text(
+            srep_path,
+            json.dumps(rep_index[n], indent=2) + "\n",
+        )
 
         print(
             f"          support={s['support_rate']:.3f} null={s['null_rate']:.3f} "
@@ -243,6 +268,7 @@ def main():
             f"{seed_family}:M={M}",
             run_hash,
             script_path=str(Path(__file__).relative_to(ROOT)),
+            git_dirty_at_start=git_dirty_at_start,
         )
         meta["M"] = M
         with (run_dir / "metadata" / "run_metadata.json").open(

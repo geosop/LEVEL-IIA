@@ -1,6 +1,6 @@
-name: clean_null
-generator: forward_only
-base_seed: 101
+name: collider_clustered_null
+generator: forward_only_endpoint_only_selection
+base_seed: 108
 n_participants: 24
 trials_per_bin: 24
 delay_grid_ms: [0, 5, 10, 15, 20]
@@ -11,14 +11,17 @@ participant_slope_sd: 12.0
 coef_foreperiod: 2.5
 coef_hazard: 1.5
 coef_prev_foreperiod: 1.0
-coef_carryover: 0.0
-nonlinear_amp: 0.0
-noise_ar1_rho: 0.0
-noise_hetero: 0.0
+coef_carryover: 1.5
+nonlinear_amp: 1.5
+noise_ar1_rho: 0.4
+noise_hetero: 0.5
 delivery_jitter_ms: 0.2
-selection_mode: random
+selection_mode: endpoint_only
 retention_timing: post_assignment
-base_retention: 0.80
+base_retention: 0.70
+endpoint_selection_linear: 0.60
+endpoint_selection_quadratic: -0.20
+endpoint_selection_participant_sd: 0.80
 selection_strength: 0.0
 collider_gamma: 0.0
 leakage: false

@@ -163,6 +163,10 @@ def _blank_calibration_fields(route, p_less=1.0, p_greater=1.0):
         "p_seq_greater": np.nan,
         "log_e_seq_less": np.nan,
         "log_e_seq_greater": np.nan,
+        "n_evalue_terms": 0,
+        "n_evalue_participants": 0,
+        "evalue_fold_term_counts": "[]",
+        "evalue_fold_participant_counts": "[]",
         "sigma_tau_design": np.nan,
         "sigma_tau_eff": np.nan,
     }
@@ -229,11 +233,12 @@ def pipeline_once(ds, cfg, rng):
     sigma_tau_design = float(np.std(grid_s))
     support_s = float(grid_s.max() - grid_s.min())
 
-    resid, idx_ret, _ = comparator.cross_fitted_residual(
+    resid, idx_ret, comparator_info = comparator.cross_fitted_residual(
         ds,
         n_folds=cfg.get("n_folds", 5),
         lam=cfg.get("ridge_lambda", 1.0),
         rng=rng,
+        fold_seed=cfg.get("crossfit_fold_seed", 0),
     )
     part_ret = ds.participant[idx_ret]
     tau_ret = ds.tau_assigned[idx_ret]
@@ -280,6 +285,27 @@ def pipeline_once(ds, cfg, rng):
                 sigma_tau_eff = float(np.sqrt(np.mean(tau_c[analysis_mask_ret] ** 2)))
 
         else:
+            declared_timing = cfg.get("retention_timing", "post_assignment")
+            generated_timing = ds.meta.get(
+                "retention_timing",
+                "post_assignment",
+            )
+            if (
+                declared_timing != "pre_assignment"
+                or generated_timing != "pre_assignment"
+            ):
+                raise ValueError(
+                    "sequential e-values require retention_timing=pre_assignment"
+                )
+            if not np.array_equal(
+                np.asarray(ds.H_pre, dtype=bool),
+                np.asarray(ds.S, dtype=bool),
+            ):
+                raise ValueError(
+                    "sequential analysis inclusion differs from the "
+                    "pre-assignment eligibility vector"
+                )
+
             law = assignment_law.conditional_assignment_table(ds, cfg)
             support_ret = law["support"][idx_ret]
             prob_ret = law["prob"][idx_ret]
@@ -329,24 +355,33 @@ def pipeline_once(ds, cfg, rng):
                 sigma_tau_eff = float(np.sqrt(np.mean(var_ret[analysis_mask_ret])))
 
             seq_cfg = cfg.get("sequential_evalue", {}) or {}
+            evalue_mask_ret = usable_ret
+            fold_ret = np.asarray(
+                comparator_info["fold_retained"],
+                dtype=int,
+            )
             seq_less = inference.sequential_evalue_pvalue(
-                resid=resid[analysis_mask_ret],
-                tau_obs=tau_ret[analysis_mask_ret],
-                support=support_ret[analysis_mask_ret],
-                prob=prob_ret[analysis_mask_ret],
-                mu=mu_ret[analysis_mask_ret],
-                participant=part_ret[analysis_mask_ret],
+                resid=resid[evalue_mask_ret],
+                tau_obs=tau_ret[evalue_mask_ret],
+                support=support_ret[evalue_mask_ret],
+                prob=prob_ret[evalue_mask_ret],
+                mu=mu_ret[evalue_mask_ret],
+                participant=part_ret[evalue_mask_ret],
+                fold=fold_ret[evalue_mask_ret],
+                fold_weights=seq_cfg.get("fold_weights", "equal"),
                 lambda_grid=seq_cfg.get("lambda_grid", [1, 2, 5, 10, 20, 50, 100, 200]),
                 weights=seq_cfg.get("weights", "equal"),
                 alternative="less",
             )
             seq_greater = inference.sequential_evalue_pvalue(
-                resid=resid[analysis_mask_ret],
-                tau_obs=tau_ret[analysis_mask_ret],
-                support=support_ret[analysis_mask_ret],
-                prob=prob_ret[analysis_mask_ret],
-                mu=mu_ret[analysis_mask_ret],
-                participant=part_ret[analysis_mask_ret],
+                resid=resid[evalue_mask_ret],
+                tau_obs=tau_ret[evalue_mask_ret],
+                support=support_ret[evalue_mask_ret],
+                prob=prob_ret[evalue_mask_ret],
+                mu=mu_ret[evalue_mask_ret],
+                participant=part_ret[evalue_mask_ret],
+                fold=fold_ret[evalue_mask_ret],
+                fold_weights=seq_cfg.get("fold_weights", "equal"),
                 lambda_grid=seq_cfg.get("lambda_grid", [1, 2, 5, 10, 20, 50, 100, 200]),
                 weights=seq_cfg.get("weights", "equal"),
                 alternative="greater",
@@ -359,6 +394,14 @@ def pipeline_once(ds, cfg, rng):
                 "p_seq_greater": seq_greater["p_seq"],
                 "log_e_seq_less": seq_less["log_e_mix"],
                 "log_e_seq_greater": seq_greater["log_e_mix"],
+                "n_evalue_terms": seq_less["n_terms"],
+                "n_evalue_participants": seq_less["n_participants"],
+                "evalue_fold_term_counts": json.dumps(
+                    seq_less["n_terms_by_fold"].tolist()
+                ),
+                "evalue_fold_participant_counts": json.dumps(
+                    seq_less["n_participants_by_fold"].tolist()
+                ),
                 "route_valid": bool(
                     seq_less["valid"] and seq_greater["valid"] and np.isfinite(beta)
                 ),
@@ -558,6 +601,12 @@ def run_scenario(cfg, M, base_seed):
             "p_seq_greater": out["p_seq_greater"],
             "log_e_seq_less": out["log_e_seq_less"],
             "log_e_seq_greater": out["log_e_seq_greater"],
+            "n_evalue_terms": out["n_evalue_terms"],
+            "n_evalue_participants": out["n_evalue_participants"],
+            "evalue_fold_term_counts": out["evalue_fold_term_counts"],
+            "evalue_fold_participant_counts": out[
+                "evalue_fold_participant_counts"
+            ],
             "infer_neg_pass": comp["infer_neg_pass"],
             "infer_pos_pass": comp["infer_pos_pass"],
             "magnitude_neg_pass": comp["magnitude_neg_pass"],
@@ -598,8 +647,15 @@ def run_scenario(cfg, M, base_seed):
             "gate_passed": out["selection_gate"]["passed"],
             "gate_applicable": out["selection_gate"].get("applicable", False),
             "collider_inter_z": out["collider"]["interaction"]["z"],
+            "collider_inter_p": out["collider"]["interaction"]["p"],
+            "collider_inter_valid": out["collider"]["interaction"]["valid"],
+            "collider_inter_fired": out["collider"]["interaction"]["fired"],
             "collider_smd": out["collider"]["smd"]["max_smd"],
+            "collider_smd_min_p": out["collider"]["smd"]["min_p"],
+            "collider_smd_valid": out["collider"]["smd"]["valid"],
+            "collider_smd_fired": out["collider"]["smd"]["fired"],
             "collider_rank_z": out["collider"]["rank"]["z"],
+            "collider_invalid": out["collider"]["invalid"],
             "collider_fired": out["collider"]["fired"],
             "decision": out["decision"],
         })
@@ -648,7 +704,16 @@ def summarise(df, cfg, scenario_name, generator_name):
         "gate_pass_rate": float(df["gate_passed"].mean()),
         "gate_pass_given_applicable_rate": gate_conditional,
         "collider_inter_fire_rate": float(
-            (df["collider_inter_z"].abs() > cfg.get("interaction_z", 3.0)).mean()
+            df["collider_inter_fired"].astype(bool).mean()
+        ),
+        "collider_inter_invalid_rate": float(
+            (~df["collider_inter_valid"].astype(bool)).mean()
+        ),
+        "collider_smd_fire_rate": float(
+            df["collider_smd_fired"].astype(bool).mean()
+        ),
+        "collider_invalid_rate": float(
+            df["collider_invalid"].astype(bool).mean()
         ),
         "collider_fire_rate": float(df["collider_fired"].mean()),
         "N_estimable_med": float(df["N_estimable"].median()),
@@ -697,7 +762,7 @@ def collider_sweep(base_cfg, gammas, M, base_seed):
             "retention_fire_rate": float(df["retention_fired"].mean()),
             "materiality_pass_rate": float(material_neg.mean()),
             "interaction_fire_rate": float(
-                (df["collider_inter_z"].abs() > cfg.get("interaction_z", 3.0)).mean()
+                df["collider_inter_fired"].astype(bool).mean()
             ),
             "gate_pass_rate": gate_conditional,
             "support_rate": float((df["decision"] == "supported").mean()),

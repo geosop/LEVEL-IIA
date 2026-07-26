@@ -34,6 +34,7 @@ class Dataset:
     tau_assigned: np.ndarray         # assigned post-endpoint delay (s)
     tau_delivered: np.ndarray        # delivered delay including jitter (s)
     A_pre: np.ndarray                # committed pre-event endpoint (uV)
+    H_pre: np.ndarray                # eligibility fixed before current assignment
     S: np.ndarray                    # inclusion indicator (1 retained, 0 excluded)
     bin_index: np.ndarray            # assigned-delay bin index
     trial_index: np.ndarray          # chronological trial index within participant
@@ -121,10 +122,25 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
     jitter_sd_ms = float(cfg.get("delivery_jitter_ms", 0.2))
 
     # retention / selection
-    sel_mode = cfg.get("selection_mode", "random")        # random|monotone|collider|none
+    sel_mode = cfg.get("selection_mode", "random")
+    retention_timing = cfg.get("retention_timing", "post_assignment")
+    if retention_timing not in {"pre_assignment", "post_assignment"}:
+        raise ValueError(
+            "retention_timing must be 'pre_assignment' or 'post_assignment'"
+        )
+    if retention_timing == "pre_assignment" and sel_mode not in {"random", "none"}:
+        raise ValueError(
+            "pre_assignment retention is implemented only for random or none "
+            "selection modes"
+        )
     base_retention = float(cfg.get("base_retention", 0.80))
     sel_strength = float(cfg.get("selection_strength", 0.0))
     collider_gamma = float(cfg.get("collider_gamma", 0.0))
+    endpoint_sel_linear = float(cfg.get("endpoint_selection_linear", 0.0))
+    endpoint_sel_quadratic = float(cfg.get("endpoint_selection_quadratic", 0.0))
+    endpoint_sel_participant_sd = float(
+        cfg.get("endpoint_selection_participant_sd", 0.0)
+    )
 
     grid_fp_s = np.asarray(cfg.get("foreperiod_grid_s", [0.4, 0.8, 1.2, 1.6, 2.0]), float)
 
@@ -132,7 +148,7 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
     parts, es, pes, hzs = [], [], [], []
     tau_prev_all, tau_assigned_all, bins_all, trial_index_all = [], [], [], []
     A_all, leak_all = [], []
-    S_logit_all = []
+    H_pre_all, S_logit_all = [], []
 
     # benign per-participant slope heterogeneity (does not violate the boundary:
     # it is heterogeneity of the *injected* term, zero under forward-only nulls)
@@ -144,8 +160,27 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
             slope_p = rng.normal(beta_inj, tau_beta, size=P)
     else:
         slope_p = np.zeros(P)
+    endpoint_selection_slope_p = rng.normal(
+        endpoint_sel_linear,
+        endpoint_sel_participant_sd,
+        size=P,
+    )
 
     for p in range(P):
+        # For the sequential route, prospective inclusion is drawn before the
+        # participant's assignment sequence. It is therefore measurable before
+        # every current-trial delay draw. Post-assignment stress scenarios keep
+        # all trials prospectively eligible and generate S below.
+        if retention_timing == "pre_assignment":
+            if sel_mode == "none":
+                h_pre = np.ones(n_per_part, dtype=int)
+            else:
+                h_pre = (
+                    rng.random(n_per_part) < base_retention
+                ).astype(int)
+        else:
+            h_pre = np.ones(n_per_part, dtype=int)
+
         e, prev_e, hazard = _foreperiod_block(rng, n_per_part, grid_fp_s)
         # balanced assigned-delay design within participant, then shuffled
         bins = np.repeat(np.arange(len(grid_s)), n_bin)
@@ -205,6 +240,15 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
             s_logit = (np.log(base_retention / (1 - base_retention))
                        + collider_gamma * _zscore(A) * (tau - grid_mean)
                        / (grid_s.std() + 1e-12))
+        elif sel_mode == "endpoint_only":
+            # Delay-neutral nonlinear retention used to calibrate the false-fire
+            # size of the clustered collider diagnostic.
+            z_a = _zscore(A)
+            s_logit = (
+                np.log(base_retention / (1 - base_retention))
+                + endpoint_selection_slope_p[p] * z_a
+                + endpoint_sel_quadratic * (z_a ** 2 - 1.0)
+            )
         else:
             raise ValueError(f"unknown selection_mode {sel_mode}")
 
@@ -212,7 +256,8 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
         es.append(e); pes.append(prev_e); hzs.append(hazard)
         tau_prev_all.append(tau_prev); tau_assigned_all.append(tau); bins_all.append(bins)
         trial_index_all.append(np.arange(n_per_part, dtype=int))
-        A_all.append(A); leak_all.append(leak); S_logit_all.append(s_logit)
+        A_all.append(A); leak_all.append(leak)
+        H_pre_all.append(h_pre); S_logit_all.append(s_logit)
 
     participant = np.concatenate(parts)
     e = np.concatenate(es); prev_e = np.concatenate(pes); hazard = np.concatenate(hzs)
@@ -222,23 +267,27 @@ def generate_dataset(rng: np.random.Generator, cfg: dict) -> Dataset:
     trial_index = np.concatenate(trial_index_all)
     A_pre = np.concatenate(A_all)
     leak_probe = np.concatenate(leak_all)
+    H_pre = np.concatenate(H_pre_all)
     s_logit = np.concatenate(S_logit_all)
 
     # delivery jitter
     tau_delivered = tau_assigned + rng.normal(0.0, jitter_sd_ms / 1000.0, size=A_pre.shape[0])
 
-    # draw inclusion
-    p_inc = 1.0 / (1.0 + np.exp(-s_logit))
-    S = (rng.random(A_pre.shape[0]) < p_inc).astype(int)
+    if retention_timing == "pre_assignment":
+        S = H_pre.copy()
+    else:
+        p_inc = 1.0 / (1.0 + np.exp(-s_logit))
+        S = (rng.random(A_pre.shape[0]) < p_inc).astype(int)
 
     return Dataset(
         participant=participant, e=e, prev_e=prev_e, hazard=hazard,
         tau_prev=tau_prev, tau_assigned=tau_assigned, tau_delivered=tau_delivered,
-        A_pre=A_pre, S=S, bin_index=bin_index, trial_index=trial_index,
+        A_pre=A_pre, H_pre=H_pre, S=S,
+        bin_index=bin_index, trial_index=trial_index,
         grid_s=grid_s, leak_probe=leak_probe,
         meta={"P": P, "n_per_part": n_per_part, "grid_mean": grid_mean,
               "sigma_resid": sigma_resid, "beta_inj": beta_inj,
-              "sel_mode": sel_mode},
+              "sel_mode": sel_mode, "retention_timing": retention_timing},
     )
 
 

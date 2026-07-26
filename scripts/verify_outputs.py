@@ -80,6 +80,9 @@ DIAGNOSTIC_RATE_COLS = [
     "retention_fire_rate",
     "gate_applicable_rate",
     "collider_inter_fire_rate",
+    "collider_inter_invalid_rate",
+    "collider_smd_fire_rate",
+    "collider_invalid_rate",
     "collider_fire_rate",
     "component_disagreement_rate",
     "estimability_summary_fire_rate",
@@ -97,7 +100,10 @@ CHECKS = [
     ("clean_null", "support_rate", "<=", 0.05, "false-support control (anchor)"),
     ("clean_null", "null_rate", ">=", 0.85, "anchor classified null"),
     ("clean_null", "inconclusive_rate", "<=", 0.15, "anchor disagreement/uncertainty bounded"),
+    ("clean_null", "collider_inter_fire_rate", "<=", 0.02, "clustered collider false-fire control"),
+    ("clean_null", "collider_invalid_rate", "<=", 0.00, "collider diagnostics numerically valid"),
     ("injected_residual", "support_rate", ">=", 0.70, "recovery power"),
+    ("injected_residual", "collider_fire_rate", "<=", 0.02, "genuine residual does not trip collider block"),
     ("leakage", "diagnostic_failure_rate", ">=", 0.90, "leakage audit blocks"),
     ("leakage", "support_rate", "<=", 0.02, "leakage not supported"),
     ("selection_standard", "retention_fire_rate", ">=", 0.90, "selection audit fires"),
@@ -582,4 +588,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
