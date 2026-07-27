@@ -27,6 +27,6 @@ tables      : LaTeX and CSV table writers.
 metadata    : deterministic seed policy, run-hash and environment capture.
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 from . import dgp, comparator, inference, audits, selection, estimability, collider  # noqa: F401

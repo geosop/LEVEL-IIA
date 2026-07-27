@@ -169,19 +169,40 @@ def _normalise_evalue_weights(lambda_grid, weights):
     return lam, w
 
 
-def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None,
-                             lambda_grid=None, weights=None, alternative="less"):
-    """Sequential martingale/e-value calibration for current-trial assignment increments.
+def _normalise_fold_weights(fold_ids, weights):
+    folds = np.asarray(sorted(np.unique(fold_ids)), dtype=int)
+    if folds.size < 2:
+        raise ValueError("sequential fold mixture requires at least two folds")
+    if weights is None or (isinstance(weights, str) and weights == "equal"):
+        w = np.ones(folds.size, dtype=float) / folds.size
+    else:
+        w = np.asarray(weights, dtype=float)
+        if w.shape != folds.shape:
+            raise ValueError("fold_weights must have one value per observed fold")
+        if np.any(w < 0) or not np.any(w > 0):
+            raise ValueError(
+                "fold_weights must be nonnegative with at least one positive entry"
+            )
+        w = w / np.sum(w)
+    return folds, w
 
-    This is the deployable carryover-sensitive route. It uses the observed frozen
-    residuals and the declared conditional assignment law for the current trial.
-    It does not regenerate counterfactual endpoints and it is not an exact
-    frozen-array randomisation p-value.
+
+def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None,
+                             fold=None, fold_weights=None, lambda_grid=None,
+                             weights=None, alternative="less"):
+    """Cross-fitted sequential e-value mixture.
+
+    Each fold product is evaluated using residuals predicted by a comparator
+    trained entirely outside that participant fold. Lambda-specific products are
+    combined by a fixed convex mixture within fold; fold e-values are then
+    combined by a second fixed convex mixture. Fold products are never
+    multiplied together.
 
     Parameters
     ----------
     resid : array-like, shape (n,)
-        Frozen residuals on retained trials.
+        Frozen residuals on prospectively included trials. Final estimability
+        must not select these rows.
     tau_obs : array-like, shape (n,)
         Observed assigned delays on retained trials.
     support : array-like, shape (n, k)
@@ -190,6 +211,12 @@ def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None
         Conditional probabilities for each retained trial.
     mu : array-like, shape (n,)
         Conditional assignment mean for each retained trial.
+    participant : array-like, shape (n,)
+        Participant identifiers, used for fold provenance summaries.
+    fold : array-like, shape (n,)
+        Prospectively fixed participant fold for each term.
+    fold_weights : array-like or "equal"
+        Fixed convex mixture weights over observed folds.
     lambda_grid : array-like
         Predeclared positive e-value tuning grid.
     weights : array-like or "equal"
@@ -200,7 +227,8 @@ def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None
     Returns
     -------
     dict
-        p_seq, log_e_mix, log_e_grid, lambda_grid, weights, n_terms, valid, reason.
+        p_seq, log_e_mix, per-fold log e-values, tuning grids, term and
+        participant counts, validity flag, and reason.
     """
     if lambda_grid is None:
         lambda_grid = np.array([1, 2, 5, 10, 20, 50, 100, 200], dtype=float)
@@ -211,11 +239,83 @@ def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None
     support = np.asarray(support, dtype=float)
     prob = np.asarray(prob, dtype=float)
     mu = np.asarray(mu, dtype=float)
+    if participant is None:
+        participant = np.arange(resid.size, dtype=int)
+    participant = np.asarray(participant)
+    if fold is None:
+        return {
+            "p_seq": 1.0,
+            "log_e_mix": -np.inf,
+            "log_e_grid": np.full((0, lam.size), -np.inf),
+            "log_e_fold": np.asarray([], dtype=float),
+            "lambda_grid": lam,
+            "weights": w,
+            "fold_ids": np.asarray([], dtype=int),
+            "fold_weights": np.asarray([], dtype=float),
+            "n_terms": 0,
+            "n_terms_by_fold": np.asarray([], dtype=int),
+            "n_participants": 0,
+            "n_participants_by_fold": np.asarray([], dtype=int),
+            "valid": False,
+            "reason": "prospectively fixed fold assignments are required",
+        }
+    fold = np.asarray(fold)
 
     if support.shape != prob.shape or support.ndim != 2:
-        return {"p_seq": 1.0, "log_e_mix": -np.inf, "log_e_grid": np.full(lam.size, -np.inf),
-                "lambda_grid": lam, "weights": w, "n_terms": 0, "valid": False,
-                "reason": "support and prob must be two-dimensional arrays with matching shape"}
+        return {
+            "p_seq": 1.0,
+            "log_e_mix": -np.inf,
+            "log_e_grid": np.full((0, lam.size), -np.inf),
+            "log_e_fold": np.asarray([], dtype=float),
+            "lambda_grid": lam,
+            "weights": w,
+            "fold_ids": np.asarray([], dtype=int),
+            "fold_weights": np.asarray([], dtype=float),
+            "n_terms": 0,
+            "n_terms_by_fold": np.asarray([], dtype=int),
+            "n_participants": 0,
+            "n_participants_by_fold": np.asarray([], dtype=int),
+            "valid": False,
+            "reason": (
+                "support and prob must be two-dimensional arrays with matching shape"
+            ),
+        }
+    n_rows = resid.size
+    one_dimensional = [tau_obs, mu, participant, fold]
+    if any(np.asarray(x).shape != (n_rows,) for x in one_dimensional):
+        return {
+            "p_seq": 1.0,
+            "log_e_mix": -np.inf,
+            "log_e_grid": np.full((0, lam.size), -np.inf),
+            "log_e_fold": np.asarray([], dtype=float),
+            "lambda_grid": lam,
+            "weights": w,
+            "fold_ids": np.asarray([], dtype=int),
+            "fold_weights": np.asarray([], dtype=float),
+            "n_terms": 0,
+            "n_terms_by_fold": np.asarray([], dtype=int),
+            "n_participants": 0,
+            "n_participants_by_fold": np.asarray([], dtype=int),
+            "valid": False,
+            "reason": "all one-dimensional inputs must have the same length",
+        }
+    if support.shape[0] != n_rows:
+        return {
+            "p_seq": 1.0,
+            "log_e_mix": -np.inf,
+            "log_e_grid": np.full((0, lam.size), -np.inf),
+            "log_e_fold": np.asarray([], dtype=float),
+            "lambda_grid": lam,
+            "weights": w,
+            "fold_ids": np.asarray([], dtype=int),
+            "fold_weights": np.asarray([], dtype=float),
+            "n_terms": 0,
+            "n_terms_by_fold": np.asarray([], dtype=int),
+            "n_participants": 0,
+            "n_participants_by_fold": np.asarray([], dtype=int),
+            "valid": False,
+            "reason": "support rows must match the residual length",
+        }
 
     finite = (np.isfinite(resid) & np.isfinite(tau_obs) & np.isfinite(mu) &
               np.all(np.isfinite(support), axis=1) & np.all(np.isfinite(prob), axis=1) &
@@ -223,9 +323,22 @@ def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None
               np.all(prob >= -1e-12, axis=1))
     finite &= np.any(prob > 0, axis=1)
     if not np.any(finite):
-        return {"p_seq": 1.0, "log_e_mix": -np.inf, "log_e_grid": np.full(lam.size, -np.inf),
-                "lambda_grid": lam, "weights": w, "n_terms": 0, "valid": False,
-                "reason": "no valid conditional assignment rows"}
+        return {
+            "p_seq": 1.0,
+            "log_e_mix": -np.inf,
+            "log_e_grid": np.full((0, lam.size), -np.inf),
+            "log_e_fold": np.asarray([], dtype=float),
+            "lambda_grid": lam,
+            "weights": w,
+            "fold_ids": np.asarray([], dtype=int),
+            "fold_weights": np.asarray([], dtype=float),
+            "n_terms": 0,
+            "n_terms_by_fold": np.asarray([], dtype=int),
+            "n_participants": 0,
+            "n_participants_by_fold": np.asarray([], dtype=int),
+            "valid": False,
+            "reason": "no valid conditional assignment rows",
+        }
 
     r = resid[finite]
     t = tau_obs[finite]
@@ -233,7 +346,51 @@ def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None
     p = np.clip(prob[finite], 0.0, 1.0)
     p = p / p.sum(axis=1, keepdims=True)
     m = mu[finite]
+    part = participant[finite]
+    fold_valid = fold[finite].astype(int)
     n = r.size
+
+    try:
+        fold_ids, fold_w = _normalise_fold_weights(
+            fold_valid,
+            fold_weights,
+        )
+    except ValueError as exc:
+        return {
+            "p_seq": 1.0,
+            "log_e_mix": -np.inf,
+            "log_e_grid": np.full((0, lam.size), -np.inf),
+            "log_e_fold": np.asarray([], dtype=float),
+            "lambda_grid": lam,
+            "weights": w,
+            "fold_ids": np.asarray([], dtype=int),
+            "fold_weights": np.asarray([], dtype=float),
+            "n_terms": int(n),
+            "n_terms_by_fold": np.asarray([], dtype=int),
+            "n_participants": int(np.unique(part).size),
+            "n_participants_by_fold": np.asarray([], dtype=int),
+            "valid": False,
+            "reason": str(exc),
+        }
+
+    for pid in np.unique(part):
+        if np.unique(fold_valid[part == pid]).size != 1:
+            return {
+                "p_seq": 1.0,
+                "log_e_mix": -np.inf,
+                "log_e_grid": np.full((0, lam.size), -np.inf),
+                "log_e_fold": np.asarray([], dtype=float),
+                "lambda_grid": lam,
+                "weights": w,
+                "fold_ids": fold_ids,
+                "fold_weights": fold_w,
+                "n_terms": int(n),
+                "n_terms_by_fold": np.asarray([], dtype=int),
+                "n_participants": int(np.unique(part).size),
+                "n_participants_by_fold": np.asarray([], dtype=int),
+                "valid": False,
+                "reason": "a participant appears in more than one e-value fold",
+            }
 
     if alternative not in {"less", "greater"}:
         raise ValueError("alternative must be 'less' or 'greater'")
@@ -243,16 +400,60 @@ def sequential_evalue_pvalue(resid, tau_obs, support, prob, mu, participant=None
     with np.errstate(divide="ignore"):
         log_p = np.where(p > 0.0, np.log(p), -np.inf)
 
-    log_e_grid = []
-    for la in lam:
-        log_mgf = logsumexp(log_p + la * z_support, axis=1)
-        log_e_grid.append(float(np.sum(la * x_obs - log_mgf)))
-    log_e_grid = np.asarray(log_e_grid, dtype=float)
-    log_e_mix = float(logsumexp(np.log(w) + log_e_grid))
+    log_e_grid = np.empty((fold_ids.size, lam.size), dtype=float)
+    log_e_fold = np.empty(fold_ids.size, dtype=float)
+    n_terms_by_fold = np.empty(fold_ids.size, dtype=int)
+    n_participants_by_fold = np.empty(fold_ids.size, dtype=int)
+
+    for i, fold_id in enumerate(fold_ids):
+        in_fold = fold_valid == fold_id
+        n_terms_by_fold[i] = int(np.sum(in_fold))
+        n_participants_by_fold[i] = int(np.unique(part[in_fold]).size)
+        if n_terms_by_fold[i] == 0:
+            return {
+                "p_seq": 1.0,
+                "log_e_mix": -np.inf,
+                "log_e_grid": log_e_grid[:i],
+                "log_e_fold": log_e_fold[:i],
+                "lambda_grid": lam,
+                "weights": w,
+                "fold_ids": fold_ids,
+                "fold_weights": fold_w,
+                "n_terms": int(n),
+                "n_terms_by_fold": n_terms_by_fold[:i],
+                "n_participants": int(np.unique(part).size),
+                "n_participants_by_fold": n_participants_by_fold[:i],
+                "valid": False,
+                "reason": f"e-value fold {fold_id} has no terms",
+            }
+        for ell, la in enumerate(lam):
+            log_mgf = logsumexp(
+                log_p[in_fold] + la * z_support[in_fold],
+                axis=1,
+            )
+            log_e_grid[i, ell] = float(
+                np.sum(la * x_obs[in_fold] - log_mgf)
+            )
+        log_e_fold[i] = float(logsumexp(np.log(w) + log_e_grid[i]))
+
+    log_e_mix = float(logsumexp(np.log(fold_w) + log_e_fold))
     p_seq = float(min(1.0, np.exp(-log_e_mix))) if np.isfinite(log_e_mix) else 1.0
-    return {"p_seq": p_seq, "log_e_mix": log_e_mix, "log_e_grid": log_e_grid,
-            "lambda_grid": lam, "weights": w, "n_terms": int(n), "valid": True,
-            "reason": "ok"}
+    return {
+        "p_seq": p_seq,
+        "log_e_mix": log_e_mix,
+        "log_e_grid": log_e_grid,
+        "log_e_fold": log_e_fold,
+        "lambda_grid": lam,
+        "weights": w,
+        "fold_ids": fold_ids,
+        "fold_weights": fold_w,
+        "n_terms": int(n),
+        "n_terms_by_fold": n_terms_by_fold,
+        "n_participants": int(np.unique(part).size),
+        "n_participants_by_fold": n_participants_by_fold,
+        "valid": True,
+        "reason": "ok",
+    }
 
 
 # --------------------------------------------------------------------------- #

@@ -136,6 +136,7 @@ def _panel_objects(cfg: dict, base_seed: int, replicate: int) -> dict:
         n_folds=cfg.get("n_folds", 5),
         lam=cfg.get("ridge_lambda", 1.0),
         rng=np.random.default_rng(seed),
+        fold_seed=cfg.get("crossfit_fold_seed", 0),
     )
 
     part = ds.participant[idx_ret]
@@ -496,6 +497,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-hash", required=True)
     ap.add_argument("--outdir", default=str(ROOT / "outputs"))
+    ap.add_argument("--no-copy", action="store_true")
     args = ap.parse_args()
 
     run_dir = Path(args.outdir) / args.run_hash
@@ -515,16 +517,15 @@ def main() -> None:
     out_pdf = run_dir / "figures" / "figure2_validation.pdf"
     make_figure(PANELS, summaries_by_scenario, representative_index, args.run_hash, out_pdf)
 
-    man = ROOT / "manuscript" / "figures"
-    man.mkdir(parents=True, exist_ok=True)
-
     out_png = Path(str(out_pdf).replace(".pdf", ".png"))
-    shutil.copy(out_pdf, man / "LEVELIIA_synthetic_validation.pdf")
-    shutil.copy(out_png, man / "LEVELIIA_synthetic_validation.png")
-
     print(f"[make_figure2] wrote {out_pdf}")
-    print("[make_figure2] copied manuscript/figures/LEVELIIA_synthetic_validation.pdf")
-    print("[make_figure2] copied manuscript/figures/LEVELIIA_synthetic_validation.png")
+    if not args.no_copy:
+        man = ROOT / "manuscript" / "figures"
+        man.mkdir(parents=True, exist_ok=True)
+        shutil.copy(out_pdf, man / "LEVELIIA_synthetic_validation.pdf")
+        shutil.copy(out_png, man / "LEVELIIA_synthetic_validation.png")
+        print("[make_figure2] copied manuscript/figures/LEVELIIA_synthetic_validation.pdf")
+        print("[make_figure2] copied manuscript/figures/LEVELIIA_synthetic_validation.png")
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ coef_prev_foreperiod: 1.0
 nonlinear_amp: 0.0
 delivery_jitter_ms: 0.2
 selection_mode: random
+retention_timing: post_assignment
 base_retention: 0.80
 collider_gamma: 0.0
 leakage: false
@@ -22,6 +23,7 @@ assignment_law:
   type: fixed_multiset_without_replacement
   within: participant
 n_folds: 5
+crossfit_fold_seed: 20260726
 ridge_lambda: 1.0
 kappa: 2.0
 alpha: 0.05
@@ -36,5 +38,6 @@ R: 999
 B: 999
 interaction_z: 3.0
 smd_thresh: 0.30
+collider_smd_alpha: 0.001
 rank_z: 3.0
 tolerances: {leakage: 0.05, delivery_ms: 2.0, retention: 0.05, balance_alpha: 0.001}

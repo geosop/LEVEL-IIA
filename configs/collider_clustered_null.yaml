@@ -1,0 +1,50 @@
+name: collider_clustered_null
+generator: forward_only_endpoint_only_selection
+base_seed: 108
+n_participants: 24
+trials_per_bin: 24
+delay_grid_ms: [0, 5, 10, 15, 20]
+foreperiod_grid_s: [0.4, 0.8, 1.2, 1.6, 2.0]
+sigma_resid: 1.0
+beta_inj: 0.0
+participant_slope_sd: 12.0
+coef_foreperiod: 2.5
+coef_hazard: 1.5
+coef_prev_foreperiod: 1.0
+coef_carryover: 1.5
+nonlinear_amp: 1.5
+noise_ar1_rho: 0.4
+noise_hetero: 0.5
+delivery_jitter_ms: 0.2
+selection_mode: endpoint_only
+retention_timing: post_assignment
+base_retention: 0.70
+endpoint_selection_linear: 0.60
+endpoint_selection_quadratic: -0.20
+endpoint_selection_participant_sd: 0.80
+selection_strength: 0.0
+collider_gamma: 0.0
+leakage: false
+inference_route: assignment_isolation
+assignment_law:
+  type: fixed_multiset_without_replacement
+  within: participant
+n_folds: 5
+crossfit_fold_seed: 20260726
+ridge_lambda: 1.0
+kappa: 2.0
+alpha: 0.05
+N_min: 10
+participant_estimability:
+  min_retained_trials: 20
+  min_delay_levels: 3
+  min_leverage_fraction: 0.50
+  slope_bound_scale_multiplier: 3.0
+  summary_smd_threshold: 0.50
+R: 999
+B: 999
+interaction_z: 3.0
+smd_thresh: 0.30
+collider_smd_alpha: 0.001
+rank_z: 3.0
+tolerances: {leakage: 0.05, delivery_ms: 2.0, retention: 0.05, balance_alpha: 0.001}

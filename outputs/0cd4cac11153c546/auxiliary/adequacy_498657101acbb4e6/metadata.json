@@ -1,0 +1,97 @@
+{
+  "adequacy_id": "adequacy_498657101acbb4e6",
+  "dependency_lock_sha256": "b82ef21296ece0ba5988e423ef8210e082379435d8ea4651ca4973d5a69b325c",
+  "manifest_path": "configs/adequacy_certification.yaml",
+  "manifest_sha256": "11b21346bafee51d75b7d134b6644dc08ec85fb8c163d6c29b0cffb3f21035d8",
+  "parent_git_commit": "e45455e359646c4784b1d7b847ef44dd8f3499fd",
+  "parent_run_hash": "0cd4cac11153c546",
+  "parent_source_fingerprint": "eaaa9e902dcf425021843e60d03e205a460117d96c49d30e11c82fc047369b60",
+  "raw_checksums": {
+    "adequacy_assignment_isolation_negative_delta_10.csv": "90cab09e5974a4d0ca03e0b1b7dee3bf0891a31a40069d8849fca73f8afed051",
+    "adequacy_assignment_isolation_negative_delta_15.csv": "4620aa5e6d71cabad932d68688db115e77039c4fbd8a6df1d75ad15b6e37511a",
+    "adequacy_assignment_isolation_negative_delta_20.csv": "8a48e16c1ac70db4e7ca27e8966ec92272ae08aabfd1f785da1013eb2bd4fc8a",
+    "adequacy_assignment_isolation_negative_delta_30.csv": "f73e06f873b70df499c8fbf4a753c6e1d49ef10ce892d9a279aa85b96d7ec502",
+    "adequacy_assignment_isolation_negative_delta_40.csv": "a985bfcb1ad25a51acb22b4167b1377918050516fccd6bc995835d43d09411ca",
+    "adequacy_assignment_isolation_negative_delta_5.csv": "2ab7f5ec5932719242de68f6b312423d10f29de5624f30b0512636b912602121",
+    "adequacy_assignment_isolation_negative_delta_50.csv": "84848ddf9bd6b1ed3e66e7a576e4b9fce113a4840938b2b4754ed50cc2eded05",
+    "adequacy_assignment_isolation_negative_delta_60.csv": "387f8eef120ed55cbba63db24dc63c901807305e2418b56f38a860cc9de8d66f",
+    "adequacy_assignment_isolation_negative_delta_75.csv": "fd60451cfd85fad8531ff7881a809fb0f001a6e50a6a3037298262baf6de7456",
+    "adequacy_assignment_isolation_negative_delta_90.csv": "75c012a1de3c0d7d68265712216b3d65402da6cbd5e028538ab542dbc0571d50",
+    "adequacy_assignment_isolation_positive_delta_10.csv": "64c979209cf6bdcd07092afc2950903681df19fb0daf021ee2cf752f82cd493a",
+    "adequacy_assignment_isolation_positive_delta_15.csv": "5d986a050e91534793f0f0cb29494158c46d8dcbb494b527dbd0fa8029598976",
+    "adequacy_assignment_isolation_positive_delta_20.csv": "62613d4a95f2fdd7a6f2827d04ff66cfc4afe750254187bdbbcc92e9037d3cd0",
+    "adequacy_assignment_isolation_positive_delta_30.csv": "99ea332e84478731188dea817afa58901fca0eba30fc51d474a9361b1eb7c697",
+    "adequacy_assignment_isolation_positive_delta_40.csv": "c24a2a0b77baed234b469275313bde80ae90238e55fb29d73e4df5d1445711b3",
+    "adequacy_assignment_isolation_positive_delta_5.csv": "56da6b35760176ae050d5ab969c9794bd3a81775aec4b70d5fff80f17108be46",
+    "adequacy_assignment_isolation_positive_delta_50.csv": "4dd3d0a8ba86d495a6f6edf526ee3dda834cfd158ce038e79d05dd8c49c4338c",
+    "adequacy_assignment_isolation_positive_delta_60.csv": "1d1c5907ae7846dd61ec7536c7129c91b309b3c832b486b64d96e4b43496ad11",
+    "adequacy_assignment_isolation_positive_delta_75.csv": "26a23491a289455786b76b7e2fd4501cadd153f69e21f393489ee29608d4ee76",
+    "adequacy_assignment_isolation_positive_delta_90.csv": "2752e09ead4732d2e0db4aaaa77cba25b5d6c6de263f9a8904048466a5184d2d",
+    "adequacy_sequential_evalue_negative_delta_10.csv": "5fda7bc13fdbbb72f692feeaee7cdf8717db72b37a4b89087d96499dc5e45578",
+    "adequacy_sequential_evalue_negative_delta_15.csv": "80f5347ac938795802a6660723393ccdfc79b7a5e59813cae37a1e35d089d929",
+    "adequacy_sequential_evalue_negative_delta_20.csv": "86e1c1065846018b770d678ddf3da1dacc7fc690eb92b69e9f60905b82159eae",
+    "adequacy_sequential_evalue_negative_delta_30.csv": "bbc18c5b1b430776afebc061ef904993f441d1311d6c1e753c1019fba2767713",
+    "adequacy_sequential_evalue_negative_delta_40.csv": "ceeaed53ab2fda1a8936e71a0522c719a77f50ad056d78c1259520229899effe",
+    "adequacy_sequential_evalue_negative_delta_5.csv": "d4423da256c25a78cab2b3f9e2b4e57132c5d19b7d39e20df236d012a79b27f2",
+    "adequacy_sequential_evalue_negative_delta_50.csv": "51fda39283cafd8b057874da5a4907f4e497da53fa77a93f5d1274978ebb9072",
+    "adequacy_sequential_evalue_negative_delta_60.csv": "b70ba3dfa01744b4014f1fe390e71e0ea7b23b2c3f0b4ca8da50ec60ed75c563",
+    "adequacy_sequential_evalue_negative_delta_75.csv": "4cb8c86b1f07375cc3c74d2262c1403f0a49632d8173e38a09179ec7ff643bd4",
+    "adequacy_sequential_evalue_negative_delta_90.csv": "979a2a2610deb79a8bda3f67e10c63da771719f977d9c6f25edad2618130693b",
+    "adequacy_sequential_evalue_positive_delta_10.csv": "1eeb055fc66f2ecca9b422305856b8d66a94fd703f019ec86da4e49edbf4ef55",
+    "adequacy_sequential_evalue_positive_delta_15.csv": "4b6acc4c708facb99cb333ecfbb7343a286750f428b3184519927a2d981339b2",
+    "adequacy_sequential_evalue_positive_delta_20.csv": "d00741a7c47a39b6e0c934e8c54b7d5381da2ef6f5d2325985102ce66d12526f",
+    "adequacy_sequential_evalue_positive_delta_30.csv": "612fe61a460f78af8e117a2411487756dac8917d5e77cb076cdfda53be65cc7e",
+    "adequacy_sequential_evalue_positive_delta_40.csv": "a08bde925351902d97dfa52b1ce930367398df45e3da2a39a63dc682ea04947a",
+    "adequacy_sequential_evalue_positive_delta_5.csv": "fc26cb8df4c67bebc7e2f2b818ea631a27121e405f93eeae0c9524c92e7b8f9a",
+    "adequacy_sequential_evalue_positive_delta_50.csv": "a6a08c883c46d3b66f92537899212cd1fe8799e14c3b2515ce5ce742c8d29a05",
+    "adequacy_sequential_evalue_positive_delta_60.csv": "824c5730f7bcb9e354d8c243e9b6b93a4cb2034c424ff9fa6559ababdf0e8ec6",
+    "adequacy_sequential_evalue_positive_delta_75.csv": "50c3e71d21804c1b514ad3b9c14151339a1949f42ae17a86efb126d70772cb1b",
+    "adequacy_sequential_evalue_positive_delta_90.csv": "4734ef162d45be6a1a83b400e1e37bf4e793f330ad2c0cc992b3ce4136a3220f"
+  },
+  "resolved_manifest": {
+    "M": 1200,
+    "alpha_family": 0.05,
+    "bound": "one_sided_bonferroni_clopper_pearson",
+    "deltas": [
+      5.0,
+      10.0,
+      15.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      75.0,
+      90.0
+    ],
+    "directions": [
+      "negative",
+      "positive"
+    ],
+    "envelope": "all_current_and_larger_magnitudes",
+    "family_size": 40,
+    "p_fa_max": 0.05,
+    "routes": {
+      "assignment_isolation": {
+        "negative_config": "injected_residual.yaml",
+        "positive_config": "opposite_direction.yaml"
+      },
+      "sequential_evalue": {
+        "negative_config": "adversarial_null.yaml",
+        "positive_config": "adversarial_null.yaml"
+      }
+    },
+    "schema_version": 1
+  },
+  "summary_sha256": "a6c4cdc4b5636adf91141ba266f7eae047ea669e52cf029b0b4f9b94a5289fc6",
+  "tables": {
+    "assignment_isolation": {
+      "path": "tables/adequacy_operating_characteristic_assignment_isolation.tex",
+      "sha256": "25cfb5f724f417a9db0c74aad93c37923a2ed17476fae1f60802fb9ad625b859"
+    },
+    "sequential_evalue": {
+      "path": "tables/adequacy_operating_characteristic_sequential_evalue.tex",
+      "sha256": "2677aff8d7ff2dcd69b0aa6914233906fdeb1e6191e75fe935b9f11e24671f27"
+    }
+  }
+}

@@ -37,6 +37,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-hash", required=True)
     ap.add_argument("--outdir", default=str(ROOT / "outputs"))
+    ap.add_argument("--no-copy", action="store_true")
     args = ap.parse_args()
 
     run_dir = Path(args.outdir) / args.run_hash
@@ -66,18 +67,23 @@ def main() -> None:
         "operating_characteristics_outcomes.tex",
     ]
 
-    # Manuscript-facing package copies.
-    copy_required(run_tables, ROOT / "manuscript" / "tables", split_names)
+    if not args.no_copy:
+        # Manuscript-facing package copies.
+        copy_required(run_tables, ROOT / "manuscript" / "tables", split_names)
 
-    # Preserve non-operating-characteristics generated tables, such as collider_sweep.
-    for tex in run_tables.glob("*.tex"):
-        if tex.name == "operating_characteristics.tex":
-            print("[make_tables] skipped legacy wide table: operating_characteristics.tex")
-            continue
-        if tex.name in split_names:
-            continue
-        shutil.copy(tex, ROOT / "manuscript" / "tables" / tex.name)
-        print(f"[make_tables] {tex.name} -> manuscript/tables/")
+        # Preserve non-operating-characteristics generated tables, such as
+        # collider_sweep.
+        for tex in run_tables.glob("*.tex"):
+            if tex.name == "operating_characteristics.tex":
+                print(
+                    "[make_tables] skipped legacy wide table: "
+                    "operating_characteristics.tex"
+                )
+                continue
+            if tex.name in split_names:
+                continue
+            shutil.copy(tex, ROOT / "manuscript" / "tables" / tex.name)
+            print(f"[make_tables] {tex.name} -> manuscript/tables/")
 
     print("[make_tables] done.")
 

@@ -26,6 +26,15 @@ def test_scalar_gate_misses_collider_but_diagnostic_catches():
     assert gate_pass / applicable >= 0.90  # scalar gate misses when applicable
     assert inter_fire >= 18                # interaction diagnostic catches almost always
 
+
+def test_collider_interaction_uses_clustered_cr1_uncertainty():
+    cfg = yaml.safe_load(open(ROOT / "configs/collider_selection.yaml"))
+    out = run_one(cfg, cfg["base_seed"], 0)
+    interaction = out["collider"]["interaction"]
+    assert interaction["valid"], interaction["reason"]
+    assert interaction["covariance"] == "participant_clustered_CR1"
+    assert interaction["n_clusters"] == cfg["n_participants"]
+
 def test_full_sample_obeys_boundary():
     # before selection, A_pre is uncorrelated with the assigned delay
     import numpy as np

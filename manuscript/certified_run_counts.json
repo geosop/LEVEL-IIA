@@ -3,19 +3,19 @@
     "adversarial_null": {
       "M": 1200,
       "diagnostic_failure_n": 1,
-      "inconclusive_n": 3,
-      "null_n": 1190,
+      "inconclusive_n": 2,
+      "null_n": 1185,
       "opposite_direction_n": 0,
-      "selection_limited_n": 6,
+      "selection_limited_n": 12,
       "support_n": 0
     },
     "clean_null": {
       "M": 1200,
-      "diagnostic_failure_n": 3,
-      "inconclusive_n": 116,
-      "null_n": 1076,
+      "diagnostic_failure_n": 0,
+      "inconclusive_n": 118,
+      "null_n": 1073,
       "opposite_direction_n": 0,
-      "selection_limited_n": 5,
+      "selection_limited_n": 9,
       "support_n": 0
     },
     "collider_selection": {
@@ -29,12 +29,12 @@
     },
     "injected_residual": {
       "M": 1200,
-      "diagnostic_failure_n": 2,
+      "diagnostic_failure_n": 0,
       "inconclusive_n": 0,
       "null_n": 0,
       "opposite_direction_n": 0,
-      "selection_limited_n": 7,
-      "support_n": 1191
+      "selection_limited_n": 11,
+      "support_n": 1189
     },
     "leakage": {
       "M": 1200,
@@ -47,23 +47,23 @@
     },
     "opposite_direction": {
       "M": 1200,
-      "diagnostic_failure_n": 3,
+      "diagnostic_failure_n": 1,
       "inconclusive_n": 0,
       "null_n": 0,
-      "opposite_direction_n": 1187,
-      "selection_limited_n": 10,
+      "opposite_direction_n": 1191,
+      "selection_limited_n": 8,
       "support_n": 0
     },
     "selection_standard": {
       "M": 1200,
-      "diagnostic_failure_n": 0,
+      "diagnostic_failure_n": 4,
       "inconclusive_n": 0,
       "null_n": 0,
       "opposite_direction_n": 0,
-      "selection_limited_n": 1200,
+      "selection_limited_n": 1196,
       "support_n": 0
     }
   },
   "note": "Generated only after verify_outputs.py passes the full non-smoke operating-characteristic and false-adequacy checks.",
-  "run_hash": "bae2c9a793d169a1"
+  "run_hash": "0cd4cac11153c546"
 }

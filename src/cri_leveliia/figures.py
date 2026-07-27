@@ -36,7 +36,8 @@ def _panel_objects(cfg, base_seed, replicate):
     # recompute residual and participant bin means for display
     resid, idx_ret, info = comparator.cross_fitted_residual(
         ds, n_folds=cfg.get("n_folds", 5), lam=cfg.get("ridge_lambda", 1.0),
-        rng=np.random.default_rng(_replicate_seed(base_seed, replicate)))
+        rng=np.random.default_rng(_replicate_seed(base_seed, replicate)),
+        fold_seed=cfg.get("crossfit_fold_seed", 0))
     part = ds.participant[idx_ret]
     grid = ds.grid_s * 1000.0  # ms
     binidx = ds.bin_index[idx_ret]
