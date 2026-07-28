@@ -1,0 +1,3 @@
+contrast_id,comparison,estimate,ci95_low,ci95_high,test,p_value,discordant_assignment_only,discordant_sequential_only,M_left,M_right
+clean_sequential_minus_clean_assignment,paired_identical_clean_datasets,0.10083333333333333,0.08333333333333333,0.11916666666666667,exact_mcnemar_binomial,4.014360227832145e-33,3.0,124.0,1200,1200
+adversarial_sequential_minus_clean_sequential,independent_generators_common_sequential_route,0.006666666666666599,-0.0012098868103935009,0.015232582373099735,two_sided_fisher_exact,0.1320186423911722,,,1200,1200
