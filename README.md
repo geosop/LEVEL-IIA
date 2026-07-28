@@ -22,28 +22,28 @@ directory. Because the manuscript and SI source files are maintained outside thi
 repository, the run hash is the reproducibility anchor for benchmark numbers, not
 a pointer to manuscript source files.
 
-### Certified version 1.1.0 benchmark
+### Certified version 1.2.0 benchmark
 
-Version 1.1.0 is certified against full benchmark run
-`bae2c9a793d169a1`, generated with 1,200 Monte Carlo datasets per
+Version 1.2.0 is certified against full benchmark run
+`0cd4cac11153c546`, generated with 1,200 Monte Carlo datasets per
 scenario under source commit
-`ea695634edb1f26d1c484d098024055c1612fde3`. The run passed the declared
+`e45455e359646c4784b1d7b847ef44dd8f3499fd`. The run passed the declared
 operating-characteristic, invariant, false-adequacy and strict
 manuscript-lock checks. Its exact mutually exclusive outcome counts are
 stored in `manuscript/certified_run_counts.json`.
 
 The canonical outputs are stored under
-`outputs/bae2c9a793d169a1/`. Smoke and exploratory runs are development
+`outputs/0cd4cac11153c546/`. Smoke and exploratory runs are development
 checks only and must not be cited as certified results.
 
-The false-adequacy operating-characteristic sweep found zero
-false-adequacy classifications in 1,200 datasets per direction and
-magnitude across the tested range
-`|Delta| in {20, 30, 40, 50, 60, 75, 90}`. False-adequacy control was
-therefore certified down to the smallest tested magnitude,
-`|Delta| = 20`. This certification concerns protection against an
-erroneous adequacy classification and does not by itself establish high
-directional-support power at that magnitude.
+The route-specific adequacy certification evaluates both departure directions
+over the declared magnitude grid. Under its simultaneous familywise
+upper-bound rule, false-adequacy control is certified from
+`|Delta| = 15` for
+`assignment_isolation` and from
+`|Delta| = 30` for
+`sequential_evalue`. These are route-specific resolution boundaries for an
+affirmative adequacy classification. They are not directional-power claims.
 
 The certified full-run design is:
 
@@ -59,14 +59,14 @@ support:  [0, 20] ms
 The canonical numeric source for the certified operating characteristics is:
 
 ```text
-outputs/bae2c9a793d169a1/summary/operating_characteristics.csv
+outputs/0cd4cac11153c546/summary/operating_characteristics.csv
 ```
 
 The material-departure false-adequacy results are stored in:
 
 ```text
-outputs/bae2c9a793d169a1/summary/false_adequacy_rates.csv
-outputs/bae2c9a793d169a1/summary/adequacy_operating_characteristic.csv
+outputs/0cd4cac11153c546/summary/false_adequacy_rates.csv
+outputs/0cd4cac11153c546/summary/adequacy_operating_characteristic.csv
 ```
 
 An operating point licenses false-adequacy certification only when both the
@@ -76,16 +76,17 @@ or below `p_FA_max = 0.05`.
 The manuscript-facing LaTeX tables are generated from the certified outputs:
 
 ```text
-outputs/bae2c9a793d169a1/tables/operating_characteristics_design.tex
-outputs/bae2c9a793d169a1/tables/operating_characteristics_outcomes.tex
-outputs/bae2c9a793d169a1/tables/adequacy_operating_characteristic.tex
-outputs/bae2c9a793d169a1/tables/collider_sweep.tex
-outputs/bae2c9a793d169a1/tables/worked_decision_example.tex
+outputs/0cd4cac11153c546/tables/operating_characteristics_design.tex
+outputs/0cd4cac11153c546/tables/operating_characteristics_outcomes.tex
+outputs/0cd4cac11153c546/tables/adequacy_operating_characteristic_assignment_isolation.tex
+outputs/0cd4cac11153c546/tables/adequacy_operating_characteristic_sequential_evalue.tex
+outputs/0cd4cac11153c546/tables/collider_sweep.tex
+outputs/0cd4cac11153c546/tables/worked_decision_example.tex
 ```
 
 Earlier certified and lower-retained-trial reference runs are retained only for
 historical reproduction and pipeline-architecture comparison. They do not
-certify version 1.1.0.
+certify version 1.2.0.
 
 ## What the benchmark establishes
 
@@ -145,6 +146,40 @@ counterfactual endpoint trajectories.
 
 The `adversarial_null` scenario uses `sequential_evalue`.
 
+## Validity-matched inference-route comparison
+
+The clean-null and adversarial-null rows in the seven-scenario table use
+different inference routes and are not interpreted as identifying a generator
+effect. Auxiliary experiment `route_match_1be69ec6cd081a58`,
+parented to run `0cd4cac11153c546`, separates the route and generator
+comparisons with three validity-respecting cells:
+
+* identical clean-null datasets analysed by `assignment_isolation`;
+* the same clean-null datasets analysed by `sequential_evalue`;
+* the full adversarial null analysed by `sequential_evalue`.
+
+Each cell used 1,200 Monte Carlo datasets.
+
+The full adversarial generator is not analysed by assignment isolation because
+its carryover structure does not satisfy the frozen endpoint-array invariance
+required for global reassignment.
+
+The paired clean-route contrast
+`clean_sequential_minus_clean_assignment` has estimate
+`+0.100833` and 95% paired-bootstrap interval
+`[+0.083333, +0.119167]`.
+
+The matched generator contrast
+`adversarial_sequential_minus_clean_sequential` has estimate
+`+0.006667` and 95% paired-bootstrap interval
+`[-0.001210, +0.015233]`.
+
+The matched generator 95% paired-bootstrap interval includes zero. The
+auxiliary experiment therefore does not resolve a non-zero generator
+difference. The larger
+cross-route ordering in the original scenario rows is not interpreted as a
+generator effect, and the route-matched result is not an equivalence claim.
+
 ## Install
 
 ```bash
@@ -174,7 +209,7 @@ Full benchmark run in a separate reproduction directory:
 python scripts/run_all.py --all --outdir outputs_reproduced
 ```
 
-The repository already contains the locked manuscript run. Re-running the same
+The repository already contains the certified benchmark run. Re-running the same
 configuration targets the same deterministic run hash and is refused by default
 to protect the frozen output directory. Use `--resume` only for an incomplete
 run directory, or `--overwrite` only when intentionally regenerating a run from
@@ -186,11 +221,13 @@ Resume an interrupted reproduction run in that same separate directory:
 python scripts/run_all.py --all --outdir outputs_reproduced --resume
 ```
 
-Verify the locked manuscript run in PowerShell:
+Verify the certified benchmark and both auxiliary certifications:
 
 ```powershell
 $RunHash = (Get-Content manuscript\certified_run_counts.json | ConvertFrom-Json).run_hash
 python scripts\verify_outputs.py --run-hash $RunHash --strict-manuscript
+python scripts\verify_adequacy_operating_characteristic.py --run-hash $RunHash
+python scripts\verify_route_matched_null_comparison.py --run-hash $RunHash
 ```
 
 Regenerate benchmark tables, figures and the worked example from that run:
@@ -254,7 +291,7 @@ release checking.
 * **Replicate reproducibility.** Re-running a replicate reproduces it exactly, which is also how Figure 2 panels and the SI worked example are rebuilt.
 * **Run hash.** `metadata.compute_run_hash` is a SHA-256 digest, truncated to the first 16 hex characters, over the resolved configuration bundle, package version, seed family and deterministic executable-source fingerprint. The same configurations and hashed source map to the same hash; changing either the configuration bundle or fingerprinted source changes the hash.
 * **No overwrite by default.** `run_all.py` writes to a deterministic `<outdir>/<run_hash>/` directory. Repeating the same configuration, seed family and package version targets the same directory and is refused by default. Changed configurations produce changed hashes. Use `--outdir` for independent reproduction, `--resume` for incomplete runs, and `--overwrite` only for deliberate clean regeneration.
-* **Latest run pointer.** `<outdir>/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution within that output root, including smoke runs. The locked manuscript run is always identified explicitly by the committed hash in `manuscript/certified_run_counts.json`.
+* **Latest run pointer.** `<outdir>/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution within that output root, including smoke runs. The certified benchmark run is always identified explicitly by the committed hash in `manuscript/certified_run_counts.json`.
 
 ## Output layout
 
@@ -284,7 +321,36 @@ These paths contain generated artefact copies only. The Perspective manuscript
 and SI `.tex` files remain outside this repository and outside the Zenodo software
 archive.
 
-The SI worked example is generated from the locked representative-index file and the frozen per-replicate rows.
+The SI worked example is generated from the locked representative-index
+file and the frozen per-replicate rows.
+
+## Certified auxiliary artefacts
+
+The route-specific adequacy certification is
+`adequacy_498657101acbb4e6`. The validity-matched inference-route comparison is
+`route_match_1be69ec6cd081a58`. Both are parented to certified benchmark run
+`0cd4cac11153c546`.
+
+Canonical artefacts are stored at:
+
+```text
+outputs/0cd4cac11153c546/metadata/adequacy_certification.json
+outputs/0cd4cac11153c546/summary/adequacy_operating_characteristic.csv
+outputs/0cd4cac11153c546/tables/adequacy_operating_characteristic_assignment_isolation.tex
+outputs/0cd4cac11153c546/tables/adequacy_operating_characteristic_sequential_evalue.tex
+
+outputs/0cd4cac11153c546/metadata/route_matched_null_comparison.json
+outputs/0cd4cac11153c546/summary/route_matched_null_comparison.csv
+outputs/0cd4cac11153c546/summary/route_matched_null_contrasts.csv
+outputs/0cd4cac11153c546/tables/route_matched_null_comparison.tex
+```
+
+The corresponding content-addressed auxiliary directories are:
+
+```text
+outputs/0cd4cac11153c546/auxiliary/adequacy_498657101acbb4e6/
+outputs/0cd4cac11153c546/auxiliary/route_match_1be69ec6cd081a58/
+```
 
 ## Reviewer reproduction guide
 
@@ -309,9 +375,11 @@ output directory, run:
 python scripts/run_all.py --all --outdir outputs_reproduced
 ```
 
-To verify the locked manuscript package included in this repository, read the
-committed hash from `manuscript/certified_run_counts.json` and run
-`verify_outputs.py --strict-manuscript` as shown above.
+To verify the certified benchmark package included in this repository, read the
+committed hash from `manuscript/certified_run_counts.json` and run all three
+verification commands shown above. Those commands verify the seven-scenario
+parent run, the route-specific adequacy certification and the validity-matched
+inference-route comparison.
 
 If a new full run is generated for a later manuscript revision, update the manuscript, SI, figure captions, tables, data accessibility statement and release notes to point to the new run hash.
 
@@ -327,30 +395,38 @@ files, which are maintained separately.
 
 The numbers reported are operating characteristics of a software pipeline on simulated data. They establish that the locked decision procedure behaves as designed under the declared synthetic generators. They are not empirical evidence about human EEG and not a mechanism claim.
 
-## Adequacy operating-characteristic sweep
+## Route-specific adequacy certification
 
-The D2 affirmative-null certificate is magnitude-indexed. The adequacy operating
-characteristic must be regenerated against the same committed run after every
-classifier-semantic change. It is generated by:
+The affirmative-adequacy certificate is magnitude-indexed and route-specific.
+The committed certification `adequacy_498657101acbb4e6` is parented to
+benchmark run `0cd4cac11153c546` and evaluates both departure directions over
+the declared magnitude grid. The evaluated absolute magnitudes were
+`|Delta| in {5, 10, 15, 20, 30, 40, 50, 60, 75, 90}` for both directions
+under each inference route. Each route-direction-magnitude cell used 1,200
+Monte Carlo datasets.
 
-~~~powershell
-$RunHash = (Get-Content outputs\LATEST_RUN.txt).Trim()
-.\.venv312\Scripts\python.exe scripts\make_adequacy_operating_characteristic.py `
-  --run-hash $RunHash `
-  --M 1200 `
-  --deltas "20,30,40,50,60,75,90" `
-  --overwrite
-~~~
+The certified resolution boundaries are:
 
-This writes:
+* `assignment_isolation`: `|Delta| = 15`;
+* `sequential_evalue`: `|Delta| = 30`.
 
-- `outputs/<run_hash>/summary/adequacy_operating_characteristic.csv`
-- `outputs/<run_hash>/tables/adequacy_operating_characteristic.tex`
-- `outputs/<run_hash>/metadata/adequacy_sweep_metadata.json`
-- copied manuscript table under `manuscript/tables/`
+These values are route-specific false-adequacy resolution boundaries. They are
+not directional-power claims and do not imply that smaller departures are
+absent.
 
-The certified magnitude is defined from the monotone Wilson upper-bound envelope:
-for a given direction, all evaluated magnitudes at or above the certified
-magnitude must have false-adequacy point estimate and Wilson 95% upper bound at
-or below `p_FA_max = 0.05`.
+Verify the committed certification without regenerating it:
 
+```powershell
+$RunHash = (Get-Content manuscript\certified_run_counts.json | ConvertFrom-Json).run_hash
+python scripts\verify_adequacy_operating_characteristic.py --run-hash $RunHash
+```
+
+Verify the route-matched comparison without regenerating it:
+
+```powershell
+python scripts\verify_route_matched_null_comparison.py --run-hash $RunHash
+```
+
+Independent benchmark reproduction should use a separate output root such as
+`outputs_reproduced`. Certified directories are protected from accidental
+overwrite.
