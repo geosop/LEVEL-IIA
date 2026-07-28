@@ -1,0 +1,332 @@
+{
+  "clean_dataset_family_sha256": "f84e3d7b7eddf583b1c2b12ffc5d36caa6b6384bc2fe73988a9965c409522b82",
+  "contrasts": {
+    "path": "summary/route_matched_null_contrasts.csv",
+    "sha256": "f1df4f092e14e8b982bbe74451bdaa857f97cca642bac269d4efa4e42f5a8dfc"
+  },
+  "experiment_id": "route_match_1be69ec6cd081a58",
+  "experiment_source_fingerprint": "54fc94571581f4afedc55b777c1cf3c8342368b4e0c06f5f4f06cd45e6658fb8",
+  "generating_git_commit": "9c4fdbb14454cfb3587e3925ef0d5b20520cfef6",
+  "git_dirty_at_initial_start": false,
+  "kind": "route_matched_null_comparison",
+  "manifest_path": "configs/route_matched_null_comparison.yaml",
+  "manifest_sha256": "2fe0fff376826a23c8f66bcb840ddc1b6d0170255ccb6bfc7a4753fa5a7e12c0",
+  "parent_dependency_lock_sha256": "b82ef21296ece0ba5988e423ef8210e082379435d8ea4651ca4973d5a69b325c",
+  "parent_git_commit": "e45455e359646c4784b1d7b847ef44dd8f3499fd",
+  "parent_run_hash": "0cd4cac11153c546",
+  "parent_source_fingerprint": "eaaa9e902dcf425021843e60d03e205a460117d96c49d30e11c82fc047369b60",
+  "raw_checksums": {
+    "adversarial_sequential_evalue.csv": "5dc7f86bbd0dcc98f5d1a0d9bdeb0dc98b744a3ad551c18b9d717e357c91c4e4",
+    "clean_assignment_isolation.csv": "b074dc315a811a6c4e6c6a49784223ed7496a68b2e0ed217cd52b92680781780",
+    "clean_sequential_evalue.csv": "5a4a306c898858569339295c1335be0c05375f1764c50548944fadc7ac0d55f2"
+  },
+  "resolved_cell_configs": {
+    "adversarial_sequential_evalue": {
+      "B": 999,
+      "N_min": 10,
+      "R": 999,
+      "alpha": 0.05,
+      "assignment_law": {
+        "type": "fixed_multiset_without_replacement",
+        "within": "participant"
+      },
+      "base_retention": 0.78,
+      "base_seed": 1202,
+      "beta_inj": 0.0,
+      "coef_carryover": 1.5,
+      "coef_foreperiod": 2.5,
+      "coef_hazard": 1.5,
+      "coef_prev_foreperiod": 1.0,
+      "collider_gamma": 0.0,
+      "collider_smd_alpha": 0.001,
+      "crossfit_fold_seed": 20260726,
+      "delay_grid_ms": [
+        0,
+        5,
+        10,
+        15,
+        20
+      ],
+      "delivery_jitter_ms": 0.5,
+      "foreperiod_grid_s": [
+        0.4,
+        0.8,
+        1.2,
+        1.6,
+        2.0
+      ],
+      "generator": "route_match_adversarial_forward_only",
+      "inference_route": "sequential_evalue",
+      "interaction_z": 3.0,
+      "kappa": 2.0,
+      "leakage": false,
+      "n_folds": 5,
+      "n_participants": 24,
+      "name": "route_match_adversarial_sequential_evalue",
+      "noise_ar1_rho": 0.4,
+      "noise_hetero": 0.5,
+      "nonlinear_amp": 1.5,
+      "participant_estimability": {
+        "min_delay_levels": 3,
+        "min_leverage_fraction": 0.5,
+        "min_retained_trials": 20,
+        "slope_bound_scale_multiplier": 3.0,
+        "summary_smd_threshold": 0.5
+      },
+      "participant_slope_sd": 12.0,
+      "participant_t_df": 3,
+      "rank_z": 3.0,
+      "retention_timing": "pre_assignment",
+      "ridge_lambda": 1.0,
+      "selection_mode": "random",
+      "selection_strength": 0.0,
+      "sequential_evalue": {
+        "fold_weights": "equal",
+        "lambda_grid": [
+          1,
+          2,
+          5,
+          10,
+          20,
+          50,
+          100,
+          200
+        ],
+        "weights": "equal"
+      },
+      "sigma_resid": 1.0,
+      "smd_thresh": 0.3,
+      "tolerances": {
+        "balance_alpha": 0.001,
+        "delivery_ms": 2.0,
+        "leakage": 0.05,
+        "retention": 0.05
+      },
+      "trials_per_bin": 24
+    },
+    "clean_assignment_isolation": {
+      "B": 999,
+      "N_min": 10,
+      "R": 999,
+      "alpha": 0.05,
+      "assignment_law": {
+        "type": "fixed_multiset_without_replacement",
+        "within": "participant"
+      },
+      "base_retention": 0.8,
+      "base_seed": 1201,
+      "beta_inj": 0.0,
+      "coef_carryover": 0.0,
+      "coef_foreperiod": 2.5,
+      "coef_hazard": 1.5,
+      "coef_prev_foreperiod": 1.0,
+      "collider_gamma": 0.0,
+      "collider_smd_alpha": 0.001,
+      "crossfit_fold_seed": 20260726,
+      "delay_grid_ms": [
+        0,
+        5,
+        10,
+        15,
+        20
+      ],
+      "delivery_jitter_ms": 0.2,
+      "foreperiod_grid_s": [
+        0.4,
+        0.8,
+        1.2,
+        1.6,
+        2.0
+      ],
+      "generator": "route_match_clean_forward_only",
+      "inference_route": "assignment_isolation",
+      "interaction_z": 3.0,
+      "kappa": 2.0,
+      "leakage": false,
+      "n_folds": 5,
+      "n_participants": 24,
+      "name": "route_match_clean_assignment_isolation",
+      "noise_ar1_rho": 0.0,
+      "noise_hetero": 0.0,
+      "nonlinear_amp": 0.0,
+      "participant_estimability": {
+        "min_delay_levels": 3,
+        "min_leverage_fraction": 0.5,
+        "min_retained_trials": 20,
+        "slope_bound_scale_multiplier": 3.0,
+        "summary_smd_threshold": 0.5
+      },
+      "participant_slope_sd": 12.0,
+      "rank_z": 3.0,
+      "retention_timing": "pre_assignment",
+      "ridge_lambda": 1.0,
+      "selection_mode": "random",
+      "selection_strength": 0.0,
+      "sequential_evalue": {
+        "fold_weights": "equal",
+        "lambda_grid": [
+          1,
+          2,
+          5,
+          10,
+          20,
+          50,
+          100,
+          200
+        ],
+        "weights": "equal"
+      },
+      "sigma_resid": 1.0,
+      "smd_thresh": 0.3,
+      "tolerances": {
+        "balance_alpha": 0.001,
+        "delivery_ms": 2.0,
+        "leakage": 0.05,
+        "retention": 0.05
+      },
+      "trials_per_bin": 24
+    },
+    "clean_sequential_evalue": {
+      "B": 999,
+      "N_min": 10,
+      "R": 999,
+      "alpha": 0.05,
+      "assignment_law": {
+        "type": "fixed_multiset_without_replacement",
+        "within": "participant"
+      },
+      "base_retention": 0.8,
+      "base_seed": 1201,
+      "beta_inj": 0.0,
+      "coef_carryover": 0.0,
+      "coef_foreperiod": 2.5,
+      "coef_hazard": 1.5,
+      "coef_prev_foreperiod": 1.0,
+      "collider_gamma": 0.0,
+      "collider_smd_alpha": 0.001,
+      "crossfit_fold_seed": 20260726,
+      "delay_grid_ms": [
+        0,
+        5,
+        10,
+        15,
+        20
+      ],
+      "delivery_jitter_ms": 0.2,
+      "foreperiod_grid_s": [
+        0.4,
+        0.8,
+        1.2,
+        1.6,
+        2.0
+      ],
+      "generator": "route_match_clean_forward_only",
+      "inference_route": "sequential_evalue",
+      "interaction_z": 3.0,
+      "kappa": 2.0,
+      "leakage": false,
+      "n_folds": 5,
+      "n_participants": 24,
+      "name": "route_match_clean_sequential_evalue",
+      "noise_ar1_rho": 0.0,
+      "noise_hetero": 0.0,
+      "nonlinear_amp": 0.0,
+      "participant_estimability": {
+        "min_delay_levels": 3,
+        "min_leverage_fraction": 0.5,
+        "min_retained_trials": 20,
+        "slope_bound_scale_multiplier": 3.0,
+        "summary_smd_threshold": 0.5
+      },
+      "participant_slope_sd": 12.0,
+      "rank_z": 3.0,
+      "retention_timing": "pre_assignment",
+      "ridge_lambda": 1.0,
+      "selection_mode": "random",
+      "selection_strength": 0.0,
+      "sequential_evalue": {
+        "fold_weights": "equal",
+        "lambda_grid": [
+          1,
+          2,
+          5,
+          10,
+          20,
+          50,
+          100,
+          200
+        ],
+        "weights": "equal"
+      },
+      "sigma_resid": 1.0,
+      "smd_thresh": 0.3,
+      "tolerances": {
+        "balance_alpha": 0.001,
+        "delivery_ms": 2.0,
+        "leakage": 0.05,
+        "retention": 0.05
+      },
+      "trials_per_bin": 24
+    }
+  },
+  "resolved_manifest": {
+    "M": 1200,
+    "adversarial_base_config": "adversarial_null.yaml",
+    "adversarial_base_seed": 1202,
+    "cells": [
+      {
+        "generator_family": "clean",
+        "id": "clean_assignment_isolation",
+        "inference_route": "assignment_isolation"
+      },
+      {
+        "generator_family": "clean",
+        "id": "clean_sequential_evalue",
+        "inference_route": "sequential_evalue"
+      },
+      {
+        "generator_family": "adversarial",
+        "id": "adversarial_sequential_evalue",
+        "inference_route": "sequential_evalue"
+      }
+    ],
+    "clean_base_config": "anchor.yaml",
+    "clean_base_seed": 1201,
+    "clean_overrides": {
+      "base_retention": 0.8,
+      "retention_timing": "pre_assignment",
+      "selection_mode": "random"
+    },
+    "confidence_level": 0.95,
+    "kind": "route_matched_null_comparison",
+    "paired_bootstrap": {
+      "replicates": 20000,
+      "seed": 20260728
+    },
+    "parent_run_hash": "0cd4cac11153c546",
+    "predeclared_contrasts": [
+      {
+        "comparison": "paired",
+        "id": "clean_sequential_minus_clean_assignment"
+      },
+      {
+        "comparison": "independent",
+        "id": "adversarial_sequential_minus_clean_sequential"
+      }
+    ],
+    "prohibited_cell": {
+      "id": "adversarial_assignment_isolation",
+      "reason": "The full adversarial generator contains previous-assignment carryover. Global frozen-array reassignment would change later endpoints and therefore violates the endpoint-array invariance required by assignment isolation."
+    },
+    "schema_version": 1,
+    "sequential_settings_source": "adversarial_null.yaml"
+  },
+  "summary": {
+    "path": "summary/route_matched_null_comparison.csv",
+    "sha256": "eb348b55d56cb24bd51675a957741f2ef949fb14fa345d0c9d4cc1217c619c17"
+  },
+  "table": {
+    "path": "tables/route_matched_null_comparison.tex",
+    "sha256": "c53431124055333cdef89f29fc325a1527c06af8b1fab389363dc0b5f4cd5541"
+  }
+}

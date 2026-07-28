@@ -1,0 +1,48 @@
+schema_version: 1
+kind: route_matched_null_comparison
+parent_run_hash: 0cd4cac11153c546
+M: 1200
+confidence_level: 0.95
+
+clean_base_config: anchor.yaml
+adversarial_base_config: adversarial_null.yaml
+sequential_settings_source: adversarial_null.yaml
+
+# Independent seed families are used for the two generators. The two clean
+# cells share one seed family and therefore use the same generated dataset in
+# every replicate; only the inferential route changes.
+clean_base_seed: 1201
+adversarial_base_seed: 1202
+
+clean_overrides:
+  retention_timing: pre_assignment
+  selection_mode: random
+  base_retention: 0.80
+
+cells:
+  - id: clean_assignment_isolation
+    generator_family: clean
+    inference_route: assignment_isolation
+  - id: clean_sequential_evalue
+    generator_family: clean
+    inference_route: sequential_evalue
+  - id: adversarial_sequential_evalue
+    generator_family: adversarial
+    inference_route: sequential_evalue
+
+predeclared_contrasts:
+  - id: clean_sequential_minus_clean_assignment
+    comparison: paired
+  - id: adversarial_sequential_minus_clean_sequential
+    comparison: independent
+
+paired_bootstrap:
+  replicates: 20000
+  seed: 20260728
+
+prohibited_cell:
+  id: adversarial_assignment_isolation
+  reason: >-
+    The full adversarial generator contains previous-assignment carryover.
+    Global frozen-array reassignment would change later endpoints and therefore
+    violates the endpoint-array invariance required by assignment isolation.
