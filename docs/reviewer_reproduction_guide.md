@@ -2,14 +2,21 @@
 
 ## 1. Environment
 
-```bash
-conda env create -f environment.yml
-conda activate leveliia
-pip install -e .
+For exact verification on Windows, use Python 3.12 and the committed dependency
+lock:
+
+```powershell
+py -3.12 -m venv .venv312
+$Py = (Resolve-Path .\.venv312\Scripts\python.exe).Path
+& $Py -m pip install -r requirements-lock-py312.txt
+& $Py -m pip install -e . --no-deps
 ```
 
-Reference environment: Python 3.12, numpy 2.4, scipy 1.17, pandas 3.0,
-matplotlib, pyyaml. `pip install -e .` against `requirements.txt` also works.
+The certified run records Python 3.12.7, NumPy 2.5.0, SciPy 1.18.0,
+pandas 3.0.3, Matplotlib 3.11.0 and PyYAML 6.0.3. The committed lock is the
+authoritative environment specification for exact verification. The looser
+`environment.yml` and `requirements.txt` files remain suitable for exploratory
+use, not byte-level certification checks.
 
 ## 2. One-minute sanity check
 
@@ -47,8 +54,12 @@ The certified manuscript run is the hash committed in
 scenario, `P=24` participants, five assigned-delay bins, and `n/bin=24` planned
 trials per assigned-delay bin.
 
-Affirmative-null certification requires both the false-adequacy point estimate
-and the Wilson 95% upper confidence bound to be at or below `p_FA_max = 0.05`.
+Pointwise Wilson intervals are descriptive. Certification uses the one-sided,
+Bonferroni-adjusted Clopper-Pearson simultaneous upper-bound envelope across
+the complete declared 40-cell route-by-direction-by-magnitude family. A
+route-direction operating point is certified only when the envelope at that
+magnitude and all larger evaluated magnitudes is at or below
+`p_FA_max = 0.05`.
 
 The certified false-adequacy file is:
 
@@ -79,21 +90,26 @@ outputs/<certified-run-hash>/summary/false_adequacy_rates.csv
   this is the configuration that isolates the endpoint-by-delay interaction
   diagnostic as the operative guard. All other scenarios use kappa = 2.
 
-### Adequacy operating-characteristic sweep
+### Adequacy operating-characteristic certification
 
-To reproduce the magnitude-indexed D2 certificate, run:
+Verify the committed route-specific certificate without regenerating it:
 
 ~~~powershell
-$RunHash = (Get-Content outputs\LATEST_RUN.txt).Trim()
-.\.venv312\Scripts\python.exe scripts\make_adequacy_operating_characteristic.py `
-  --run-hash $RunHash `
-  --M 1200 `
-  --deltas "20,30,40,50,60,75,90" `
-  --overwrite
+$RunHash = (Get-Content manuscript\certified_run_counts.json |
+  ConvertFrom-Json).run_hash
+$Py = (Resolve-Path .\.venv312\Scripts\python.exe).Path
+& $Py scripts\verify_adequacy_operating_characteristic.py `
+  --run-hash $RunHash
+if ($LASTEXITCODE -ne 0) {
+  throw "Adequacy certification verification failed."
+}
 ~~~
 
-The resulting CSV and LaTeX table are archived under
-`outputs/<run_hash>/summary/` and `outputs/<run_hash>/tables/`. The certificate
-uses the monotone Wilson upper-bound envelope across all evaluated magnitudes at
-or above the reported threshold.
+The committed manifest `configs/adequacy_certification.yaml` declares the
+complete grid `5, 10, 15, 20, 30, 40, 50, 60, 75, 90`, both directions and both
+inference routes, for 40 cells in total. Independent regeneration must use that
+manifest and a separate output root containing an independently reproduced
+parent benchmark run. It must not overwrite the committed certified outputs.
+Pointwise Wilson intervals remain descriptive; certification uses the
+one-sided, Bonferroni-adjusted Clopper-Pearson familywise upper-bound envelope.
 

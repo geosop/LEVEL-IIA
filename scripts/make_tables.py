@@ -23,6 +23,20 @@ from make_split_oc_tables import write_split_tables
 from make_false_adequacy_rates import write_false_adequacy_rates
 
 
+LEGACY_MANUSCRIPT_TABLES = (
+    "adequacy_operating_characteristic.tex",
+)
+
+
+def remove_legacy_manuscript_tables(dst_dir: Path) -> None:
+    """Remove manuscript-facing tables superseded by route-specific v1.2 tables."""
+    for name in LEGACY_MANUSCRIPT_TABLES:
+        legacy = dst_dir / name
+        if legacy.exists():
+            legacy.unlink()
+            print(f"[make_tables] removed legacy table: {legacy}")
+
+
 def copy_required(src_dir: Path, dst_dir: Path, names: list[str]) -> None:
     dst_dir.mkdir(parents=True, exist_ok=True)
     for name in names:
@@ -69,7 +83,10 @@ def main() -> None:
 
     if not args.no_copy:
         # Manuscript-facing package copies.
-        copy_required(run_tables, ROOT / "manuscript" / "tables", split_names)
+        manuscript_tables = ROOT / "manuscript" / "tables"
+        manuscript_tables.mkdir(parents=True, exist_ok=True)
+        remove_legacy_manuscript_tables(manuscript_tables)
+        copy_required(run_tables, manuscript_tables, split_names)
 
         # Preserve non-operating-characteristics generated tables, such as
         # collider_sweep.
@@ -82,7 +99,7 @@ def main() -> None:
                 continue
             if tex.name in split_names:
                 continue
-            shutil.copy(tex, ROOT / "manuscript" / "tables" / tex.name)
+            shutil.copy(tex, manuscript_tables / tex.name)
             print(f"[make_tables] {tex.name} -> manuscript/tables/")
 
     print("[make_tables] done.")
