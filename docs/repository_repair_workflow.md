@@ -219,14 +219,15 @@ Classifier-semantic changes invalidate the prior adequacy sweep. Regenerate it
 against the promoted run:
 
 ```powershell
-python scripts\make_adequacy_operating_characteristic.py `
+.\.venv312\Scripts\python.exe scripts\make_adequacy_operating_characteristic.py `
   --run-hash $NewHash `
-  --M 1200 `
-  --deltas '20,30,40,50,60,75,90' `
-  --overwrite
+  --manifest configs\adequacy_certification.yaml
 ```
 
-Inspect the new direction-specific and combined certified magnitudes in:
+The manifest declares magnitudes `5, 10, 15, 20, 30, 40, 50, 60, 75, 90`,
+both directions, both inference routes and the one-sided Bonferroni-adjusted
+Clopper-Pearson simultaneous bound. Inspect the route- and direction-specific
+certified magnitudes in:
 
 ```text
 outputs/<new-hash>/summary/adequacy_operating_characteristic.csv

@@ -69,9 +69,16 @@ outputs/0cd4cac11153c546/summary/false_adequacy_rates.csv
 outputs/0cd4cac11153c546/summary/adequacy_operating_characteristic.csv
 ```
 
-An operating point licenses false-adequacy certification only when both the
-false-adequacy point estimate and its Wilson 95% upper confidence bound are at
-or below `p_FA_max = 0.05`.
+The scenario-level checks in `false_adequacy_rates.csv` retain the
+registered Wilson 95% upper confidence bound for the designated
+material-departure scenarios. The route-general adequacy certificate in
+`adequacy_operating_characteristic.csv` is separate: pointwise Wilson intervals
+are descriptive, while certification uses the one-sided,
+Bonferroni-adjusted Clopper-Pearson simultaneous upper-bound envelope across
+the complete declared route-by-direction-by-magnitude family. A
+route-direction operating point is certified only when its envelope at that
+magnitude and all larger evaluated magnitudes is at or below
+`p_FA_max = 0.05`.
 
 The manuscript-facing LaTeX tables are generated from the certified outputs:
 
@@ -275,9 +282,17 @@ Second, it checks operating-characteristic qualification thresholds:
 * opposite-direction injections are not counted as directional support;
 * false-adequacy rates under material endpoint-level departures equal the
   corresponding forward-only adequate counts divided by `M`;
-* affirmative-null certification requires both the false-adequacy point
-  estimate and the Wilson 95% upper confidence bound to be at or below
+* scenario-level false-adequacy qualification requires both the point estimate
+  and its Wilson 95% upper confidence bound to be at or below
   `p_FA_max = 0.05`.
+
+The separate route-general adequacy certificate is verified by
+`scripts/verify_adequacy_operating_characteristic.py`. That verifier checks the
+one-sided, Bonferroni-adjusted Clopper-Pearson simultaneous upper-bound
+envelope across the complete declared route-by-direction-by-magnitude family
+and requires the route- and direction-specific envelope at the candidate
+magnitude and all larger evaluated magnitudes to be at or below
+`p_FA_max = 0.05`.
 
 The optional `--strict-manuscript` flag checks the run hash and exact final-outcome
 counts in `manuscript/certified_run_counts.json`. After a corrected full run has
