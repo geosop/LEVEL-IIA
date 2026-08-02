@@ -327,6 +327,14 @@
   },
   "table": {
     "path": "tables/route_matched_null_comparison.tex",
-    "sha256": "c53431124055333cdef89f29fc325a1527c06af8b1fab389363dc0b5f4cd5541"
+    "rendering_repair": {
+      "first_applied_git_commit": "7ebd0d6ce1a20bc2517df3136075239a027ac403",
+      "raw_summary_contrasts_unchanged": true,
+      "reason": "correct LaTeX column structure and submission layout only",
+      "schema_version": 1,
+      "script": "scripts/repair_manuscript_table_rendering.py",
+      "script_sha256": "70145c732a9548480f7897d649af39282880eba17f6bae2a93dcc88dc97f6833"
+    },
+    "sha256": "6ca2460bc75f3c2b7b680dcfd820fcd81d4b881eff11ecb2d6cc81153f2abdcd"
   }
 }
