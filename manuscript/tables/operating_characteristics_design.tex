@@ -6,7 +6,8 @@
 \label{tab:si-oc-design}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{llrrrrrr}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}llrrrrrr@{}}
 \toprule
 Scenario & Generator & $n$/bin & $\beta_{\min}$ & $\beta^{\mathrm{inj}}$ & Mean $\widehat{\beta}_\tau$ & Med. UCB & Med. $N_{\mathrm{est}}$ \\
 \midrule
@@ -18,5 +19,6 @@ collider\_selection & Forward-only null with endpoint-by-delay collider & 24 & 1
 adversarial\_null & Adversarial forward-only null & 24 & 33.8 & 0 & 0.078 & 6.2 & 24.0 \\
 opposite\_direction & Positive endpoint-level residual & 24 & 31.4 & 60.0 & 60.0 & 66.5 & 24.0 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
