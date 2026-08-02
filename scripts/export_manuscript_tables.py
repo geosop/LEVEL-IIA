@@ -15,6 +15,7 @@ import shutil
 from pathlib import Path
 
 from repair_manuscript_table_rendering import repair_run_tables
+from split_worked_example_rendering import split_worked_example
 
 LEGACY_TABLES = {
     "operating_characteristics.tex",
@@ -42,6 +43,11 @@ def export_tables(
         repo_root=root,
         run_hash=run_hash,
         experiment_id=experiment_id,
+        copy_manuscript=True,
+    )
+    split_worked_example(
+        repo_root=root,
+        run_hash=run_hash,
         copy_manuscript=True,
     )
 
