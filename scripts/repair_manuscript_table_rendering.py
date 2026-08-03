@@ -425,11 +425,38 @@ def update_checksum_manifest(
         row["SHA256"] = sha256(path)
 
     rows.sort(key=lambda item: item["Path"])
-    tmp = manifest_path.with_name(manifest_path.name + ".tmp")
-    with tmp.open("w", encoding="utf-8", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=expected_fields, quoting=csv.QUOTE_ALL)
+    _write_checksum_manifest_rows(
+        manifest_path,
+        fieldnames=expected_fields,
+        rows=rows,
+    )
+
+
+def _write_checksum_manifest_rows(
+    manifest_path: Path,
+    *,
+    fieldnames: list[str],
+    rows: list[dict[str, str]],
+) -> None:
+    """Write the checksum manifest with deterministic LF endings."""
+    tmp = manifest_path.with_name(
+        manifest_path.name + ".tmp"
+    )
+
+    with tmp.open(
+        "w",
+        encoding="utf-8",
+        newline="",
+    ) as fh:
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=fieldnames,
+            quoting=csv.QUOTE_ALL,
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(rows)
+
     tmp.replace(manifest_path)
 
 
