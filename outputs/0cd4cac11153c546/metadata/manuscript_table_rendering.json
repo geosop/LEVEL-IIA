@@ -8,7 +8,7 @@
   "route_experiment_id": "route_match_1be69ec6cd081a58",
   "schema_version": 1,
   "script": "scripts/repair_manuscript_table_rendering.py",
-  "script_sha256": "70145c732a9548480f7897d649af39282880eba17f6bae2a93dcc88dc97f6833",
+  "script_sha256": "a7535f2fbeed6064712a900be407d84564b6b48af28a2009acf1abbafcbec4a9",
   "table_sha256": {
     "operating_characteristics_design.tex": "28bfaba47a29ffb0e3303735ed6ed958badec195b0055a94fda838c9d6b16f8e",
     "operating_characteristics_outcomes.tex": "58761ac501b764a118a9ec2234fcbb1770be97e492f3aa8efc5b2b253b591895",

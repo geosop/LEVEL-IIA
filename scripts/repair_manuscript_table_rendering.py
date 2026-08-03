@@ -463,6 +463,56 @@ def update_route_metadata(
         atomic_write_text(path, json.dumps(data, indent=2, sort_keys=True) + "\n")
 
 
+def _load_previous_rendering_provenance(
+    metadata_path: Path,
+    *,
+    run_hash: str,
+    experiment_id: str,
+) -> tuple[str | None, dict[str, object] | None]:
+    """Load immutable provenance owned by earlier rendering operations."""
+    if not metadata_path.exists():
+        return None, None
+
+    previous = json.loads(
+        metadata_path.read_text(encoding="utf-8")
+    )
+
+    compatible_previous = (
+        previous.get("schema_version") == 1
+        and previous.get("kind")
+        == "manuscript_table_rendering_repair"
+        and previous.get("parent_run_hash") == run_hash
+        and previous.get("route_experiment_id")
+        == experiment_id
+    )
+
+    if not compatible_previous:
+        return None, None
+
+    existing_first_commit = previous.get(
+        "first_applied_git_commit"
+    )
+
+    first_commit = (
+        existing_first_commit
+        if isinstance(existing_first_commit, str)
+        and existing_first_commit
+        else None
+    )
+
+    existing_split = previous.get(
+        "worked_example_split"
+    )
+
+    worked_example_split = (
+        dict(existing_split)
+        if isinstance(existing_split, dict)
+        else None
+    )
+
+    return first_commit, worked_example_split
+
+
 def repair_run_tables(
     repo_root: Path,
     run_hash: str,
@@ -571,10 +621,14 @@ def repair_run_tables(
         if (output_tables / name).exists()
     }
     metadata_path = run_dir / "metadata" / "manuscript_table_rendering.json"
-    previous_first_commit: str | None = None
-    if metadata_path.exists():
-        previous = json.loads(metadata_path.read_text(encoding="utf-8"))
-        previous_first_commit = previous.get("first_applied_git_commit")
+    (
+        previous_first_commit,
+        previous_worked_example_split,
+    ) = _load_previous_rendering_provenance(
+        metadata_path,
+        run_hash=run_hash,
+        experiment_id=experiment_id,
+    )
     rendering_metadata = {
         "schema_version": 1,
         "kind": "manuscript_table_rendering_repair",
@@ -588,6 +642,12 @@ def repair_run_tables(
         "raw_and_summary_evidence_unchanged": True,
         "table_sha256": table_hashes,
     }
+
+    if previous_worked_example_split is not None:
+        rendering_metadata["worked_example_split"] = (
+            previous_worked_example_split
+        )
+
     atomic_write_text(
         metadata_path,
         json.dumps(rendering_metadata, indent=2, sort_keys=True) + "\n",
