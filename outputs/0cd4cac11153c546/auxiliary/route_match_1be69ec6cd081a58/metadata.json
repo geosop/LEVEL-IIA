@@ -333,7 +333,7 @@
       "reason": "correct LaTeX column structure and submission layout only",
       "schema_version": 1,
       "script": "scripts/repair_manuscript_table_rendering.py",
-      "script_sha256": "70145c732a9548480f7897d649af39282880eba17f6bae2a93dcc88dc97f6833"
+      "script_sha256": "a7535f2fbeed6064712a900be407d84564b6b48af28a2009acf1abbafcbec4a9"
     },
     "sha256": "6ca2460bc75f3c2b7b680dcfd820fcd81d4b881eff11ecb2d6cc81153f2abdcd"
   }
