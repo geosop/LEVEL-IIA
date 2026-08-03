@@ -84,11 +84,18 @@ The manuscript-facing LaTeX tables are generated from the certified outputs:
 
 ```text
 outputs/0cd4cac11153c546/tables/operating_characteristics_design.tex
+outputs/0cd4cac11153c546/tables/operating_characteristics_intervals.tex
 outputs/0cd4cac11153c546/tables/operating_characteristics_outcomes.tex
 outputs/0cd4cac11153c546/tables/adequacy_operating_characteristic_assignment_isolation.tex
 outputs/0cd4cac11153c546/tables/adequacy_operating_characteristic_sequential_evalue.tex
 outputs/0cd4cac11153c546/tables/collider_sweep.tex
+outputs/0cd4cac11153c546/tables/route_matched_null_comparison.tex
+outputs/0cd4cac11153c546/tables/v12_result_macros.tex
 outputs/0cd4cac11153c546/tables/worked_decision_example.tex
+outputs/0cd4cac11153c546/tables/worked_decision_example_values.tex
+outputs/0cd4cac11153c546/tables/worked_decision_example_bins.tex
+outputs/0cd4cac11153c546/tables/worked_decision_example_slopes.tex
+outputs/0cd4cac11153c546/tables/worked_decision_example_decision.tex
 ```
 
 Earlier certified and lower-retained-trial reference runs are retained only for
@@ -245,6 +252,19 @@ python scripts\make_split_oc_tables.py --run-hash $RunHash
 python scripts\make_tables.py --run-hash $RunHash
 python scripts\make_worked_example.py --run-hash $RunHash
 ```
+
+Export the complete certified manuscript-facing table set from the locked run
+and validity-matched route experiment:
+
+```powershell
+python scripts\export_manuscript_tables.py --run-hash $RunHash --experiment-id route_match_1be69ec6cd081a58
+```
+
+This command reads the existing certified outputs and refreshes only the
+manuscript-facing table copies and their rendering/checksum metadata. It does
+not run Monte Carlo generation, regenerate raw or summary artefacts, or create
+a new run hash. In the committed release state, repeating the command is
+byte-idempotent and leaves the working tree clean.
 
 Run unit tests:
 
