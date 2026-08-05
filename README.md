@@ -1,5 +1,7 @@
 # Level II-A post-endpoint randomisation benchmark
 
+[![DOI](https://zenodo.org/badge/1282699237.svg)](https://doi.org/10.5281/zenodo.21804380)
+
 Reproducible benchmark pipeline for the Level II-A post-endpoint randomisation
 operating-characteristic study.
 
@@ -420,11 +422,26 @@ If a new full run is generated for a later manuscript revision, update the manus
 
 ## Archival
 
-A Zenodo archive and DOI will be minted from the public GitHub release of this
-benchmark repository. The archive covers the code, configurations, tests,
-synthetic generators, and benchmark artefacts included in the release. It does
-not include the Perspective manuscript or Supplementary Information source
-files, which are maintained separately.
+The certified software-and-benchmark release `v1.2.0` is archived on
+Zenodo.
+
+- **Version-specific DOI for the exact `v1.2.0` archive:** [`10.5281/zenodo.21804381`](https://doi.org/10.5281/zenodo.21804381)
+- **Concept DOI representing all software versions:** [`10.5281/zenodo.21804380`](https://doi.org/10.5281/zenodo.21804380)
+- **Git tag:** `v1.2.0`
+- **Release commit:** `6415e578cb4aa4a9923236a8a50ab468e9636a54`
+- **Certified benchmark run:** `0cd4cac11153c546`
+- **Route-specific adequacy certification:** `adequacy_498657101acbb4e6`
+- **Validity-matched route comparison:** `route_match_1be69ec6cd081a58`
+
+For exact reproduction or citation of the certified release, use the
+version-specific DOI together with the certified run hash. The concept DOI is
+used by the repository badge and resolves to the latest available software
+release.
+
+The archive covers the executable code, configurations, tests, synthetic-data
+generators and committed benchmark artefacts. It does not include the
+Perspective manuscript or Supplementary Information source files, which are
+maintained separately.
 
 ## Honesty note
 

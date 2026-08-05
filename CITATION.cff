@@ -1,12 +1,38 @@
 cff-version: 1.2.0
-message: "If you use this benchmark, please cite the Perspective and this software archive."
+message: "Please cite this version-specific software archive when using the benchmark."
 title: "Level II-A post-endpoint randomisation benchmark pipeline"
-version: 1.2.0
-date-released: 2026-07-27
+type: software
+version: "1.2.0"
+date-released: "2026-08-05"
+commit: "6415e578cb4aa4a9923236a8a50ab468e9636a54"
+doi: "10.5281/zenodo.21804381"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21804380"
+    description: "Concept DOI representing all versions of the Level II-A benchmark pipeline."
+  - type: doi
+    value: "10.5281/zenodo.21804381"
+    description: "Version-specific DOI for the archived Level II-A benchmark release 1.2.0."
 license: MIT
 authors:
   - family-names: Sopasakis
     given-names: George
+    affiliation: "Ximantis AB"
+    orcid: "https://orcid.org/0009-0000-1635-4995"
   - family-names: Sopasakis
     given-names: Alexandros
+    affiliation: "Lund University"
+keywords:
+  - "Level II-A"
+  - "post-endpoint randomisation"
+  - "randomisation inference"
+  - "sequential e-values"
+  - "operating characteristics"
+  - "synthetic benchmark"
+  - "simulation study"
+  - "reproducible research"
+  - "EEG methodology"
+  - "neuroscience methods"
+  - "selection diagnostics"
+  - "temporal leakage"
 repository-code: "https://github.com/geosop/LEVEL-IIA"
