@@ -455,8 +455,8 @@ under version-specific DOI
 
 Release `v1.2.1` is a rendering/provenance correction release that preserves
 the same certified benchmark run and numerical results. Its version-specific
-Zenodo DOI is added to repository metadata after Zenodo archives the GitHub
-release.
+Zenodo DOI is
+[`10.5281/zenodo.21887583`](https://doi.org/10.5281/zenodo.21887583).
 
 - **Certified benchmark run:** `0cd4cac11153c546`
 - **Original generating source fingerprint:** `e45455e359646c4784b1d7b847ef44dd8f3499fd`
