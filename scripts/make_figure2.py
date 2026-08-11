@@ -177,11 +177,11 @@ def _panel_objects(cfg: dict, base_seed: int, replicate: int) -> dict:
     }
 
 
-def _decision_box_text(obj: dict, summary: dict) -> str:
+def _decision_box_text(obj: dict) -> str:
     out = obj["out"]
     beta = _as_float(out.get("beta", np.nan))
     ucb = _as_float(out.get("ucb", np.nan))
-    beta_min = _as_float(summary.get("beta_min_med", out.get("beta_min", np.nan)))
+    beta_min = _as_float(out.get("beta_min", np.nan))
 
     clears = np.isfinite(ucb) and np.isfinite(beta_min) and (ucb < -beta_min)
     cmp = r"$<-\beta_{\min}$  $\checkmark$" if clears else r"$\geq-\beta_{\min}$  $\times$"
@@ -309,7 +309,7 @@ def _draw_panel(ax, panel: dict, obj: dict, summary: dict, ylim: tuple[float, fl
     ax.text(
         0.035,
         0.205,
-        _decision_box_text(obj, summary),
+        _decision_box_text(obj),
         transform=ax.transAxes,
         va="top",
         ha="left",

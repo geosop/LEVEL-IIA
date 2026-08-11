@@ -1,0 +1,30 @@
+{
+  "figure_sha256": {
+    "pdf": "26fbefb965a7fc6c4c67203110bacc9a377a4cd82e580832232dcb0cc63e18fc",
+    "png": "7fd72c7c8a74c1b1428c684de75d0b202916053a835e0dcb2bb6fb19f09e3ec8"
+  },
+  "kind": "figure2_decision_object_rendering_repair",
+  "parent_run_hash": "0cd4cac11153c546",
+  "protected_evidence_file_count": 74,
+  "protected_evidence_sha256": "89eb0f54e8e678713a571de7ede60987f0faf7ced80e5c9da0ddd0d0a64ce12d",
+  "raw_and_summary_evidence_digest_verified": true,
+  "reason": "Ensure beta_hat, confidence bound, beta_min, audit state and plotted representative data within each illustrative panel arise from the same representative replicate decision object.",
+  "repair_git_parent": "98b81b6d6fabe699ab81081b67d9f1c7da41e091",
+  "representatives": {
+    "anchor": {
+      "base_seed": 101,
+      "replicate": 438
+    },
+    "injected_residual": {
+      "base_seed": 102,
+      "replicate": 657
+    },
+    "leakage": {
+      "base_seed": 103,
+      "replicate": 367
+    }
+  },
+  "schema_version": 1,
+  "script": "scripts/make_figure2.py",
+  "script_sha256": "1caccccd7fafc5214900686d73dbf921a6222d8627111caf7be21de263f65fdb"
+}
