@@ -1,18 +1,13 @@
 cff-version: 1.2.0
-message: "Please cite this version-specific software archive when using the benchmark."
+message: "Please cite the version-specific software archive corresponding to the release used."
 title: "Level II-A post-endpoint randomisation benchmark pipeline"
 type: software
-version: "1.2.0"
-date-released: "2026-08-05"
-commit: "6415e578cb4aa4a9923236a8a50ab468e9636a54"
-doi: "10.5281/zenodo.21804381"
+version: "1.2.1"
+date-released: "2026-08-11"
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21804380"
     description: "Concept DOI representing all versions of the Level II-A benchmark pipeline."
-  - type: doi
-    value: "10.5281/zenodo.21804381"
-    description: "Version-specific DOI for the archived Level II-A benchmark release 1.2.0."
 license: MIT
 authors:
   - family-names: Sopasakis

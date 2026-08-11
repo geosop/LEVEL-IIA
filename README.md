@@ -420,23 +420,48 @@ inference-route comparison.
 
 If a new full run is generated for a later manuscript revision, update the manuscript, SI, figure captions, tables, data accessibility statement and release notes to point to the new run hash.
 
+## Release v1.2.1 rendering/provenance correction
+
+Release `v1.2.1` preserves the certified benchmark run
+`0cd4cac11153c546` and all certified raw Monte Carlo rows, summary outputs,
+scenario counts, route-specific adequacy certification and validity-matched
+route comparison from `v1.2.0`. No Monte Carlo benchmark was rerun.
+
+The release corrects a Figure 2 rendering-level provenance inconsistency:
+the displayed `beta_min` in each representative panel is now taken from the
+same representative replicate decision object as the displayed slope estimate
+and confidence bound, rather than from the corresponding scenario-level
+median. The underlying representative decisions and scientific conclusions
+are unchanged.
+
+The protected raw/summary evidence set remained byte-identical across the
+repair: 74 files with SHA-256
+`89eb0f54e8e678713a571de7ede60987f0faf7ced80e5c9da0ddd0d0a64ce12d`.
+The rendering repair and its provenance record are stored under the same
+certified run directory; this does not create a new certified benchmark run.
+
 ## Archival
 
-The certified software-and-benchmark release `v1.2.0` is archived on
-Zenodo.
+Permanent software releases are archived on Zenodo under concept DOI
+[`10.5281/zenodo.21804380`](https://doi.org/10.5281/zenodo.21804380).
 
-- **Version-specific DOI for the exact `v1.2.0` archive:** [`10.5281/zenodo.21804381`](https://doi.org/10.5281/zenodo.21804381)
-- **Concept DOI representing all software versions:** [`10.5281/zenodo.21804380`](https://doi.org/10.5281/zenodo.21804380)
-- **Git tag:** `v1.2.0`
-- **Release commit:** `6415e578cb4aa4a9923236a8a50ab468e9636a54`
+The original certified software-and-benchmark release `v1.2.0` is preserved
+under version-specific DOI
+[`10.5281/zenodo.21804381`](https://doi.org/10.5281/zenodo.21804381).
+
+Release `v1.2.1` is a rendering/provenance correction release that preserves
+the same certified benchmark run and numerical results. Its version-specific
+Zenodo DOI is added to repository metadata after Zenodo archives the GitHub
+release.
+
 - **Certified benchmark run:** `0cd4cac11153c546`
+- **Original generating source fingerprint:** `e45455e359646c4784b1d7b847ef44dd8f3499fd`
 - **Route-specific adequacy certification:** `adequacy_498657101acbb4e6`
 - **Validity-matched route comparison:** `route_match_1be69ec6cd081a58`
 
-For exact reproduction or citation of the certified release, use the
-version-specific DOI together with the certified run hash. The concept DOI is
-used by the repository badge and resolves to the latest available software
-release.
+For exact reproduction of benchmark numerical results, use the certified run
+hash together with the version-specific archive corresponding to the software
+release being cited. The concept DOI resolves across software versions.
 
 The archive covers the executable code, configurations, tests, synthetic-data
 generators and committed benchmark artefacts. It does not include the
