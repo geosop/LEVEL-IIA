@@ -439,6 +439,10 @@ repair: 74 files with SHA-256
 `89eb0f54e8e678713a571de7ede60987f0faf7ced80e5c9da0ddd0d0a64ce12d`.
 The rendering repair and its provenance record are stored under the same
 certified run directory; this does not create a new certified benchmark run.
+The executable benchmark package version used to generate the certified run
+remains `1.2.0`; `v1.2.1` identifies the repository/archive correction release
+and does not alter the generating package version encoded in the certified run
+hash.
 
 ## Archival
 
