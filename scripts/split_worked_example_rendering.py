@@ -96,6 +96,16 @@ def _repair_decision_table(table: str) -> str:
         table = table.replace(old_row, new_row, 1)
     elif new_row not in table:
         raise ValueError("unrecognized worked-example classifier row")
+
+    old_null_indicator = "Null indicator & final outcome class &"
+    new_null_indicator = (
+        "Forward-only-adequate indicator (raw field: null indicator) & "
+        "final outcome class &"
+    )
+    if old_null_indicator in table:
+        table = table.replace(old_null_indicator, new_null_indicator, 1)
+    elif new_null_indicator not in table:
+        raise ValueError("unrecognized worked-example null-indicator row")
     return table
 
 

@@ -1,7 +1,7 @@
 {
   "figure_sha256": {
-    "pdf": "26fbefb965a7fc6c4c67203110bacc9a377a4cd82e580832232dcb0cc63e18fc",
-    "png": "7fd72c7c8a74c1b1428c684de75d0b202916053a835e0dcb2bb6fb19f09e3ec8"
+    "pdf": "b135585a8cae5593d1d65c385f0b46a3160c54e262451d72ca3ca6e4bdc1f7f4",
+    "png": "53665ab6be4904dcac53166f84daad573f87900c969204bcc7a9ea34907290bf"
   },
   "kind": "figure2_decision_object_rendering_repair",
   "parent_run_hash": "0cd4cac11153c546",
@@ -26,5 +26,5 @@
   },
   "schema_version": 1,
   "script": "scripts/make_figure2.py",
-  "script_sha256": "1caccccd7fafc5214900686d73dbf921a6222d8627111caf7be21de263f65fdb"
+  "script_sha256": "25d5bffe44bd1018ab98d18ed50e80834ca4b355708fa4e28ee2dffbfeaed1b8"
 }

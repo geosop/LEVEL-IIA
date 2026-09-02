@@ -87,11 +87,21 @@
   "tables": {
     "assignment_isolation": {
       "path": "tables/adequacy_operating_characteristic_assignment_isolation.tex",
-      "sha256": "faadb8053acdec616ccfd52f6d1c363b78ded1353f329c7d67007bf9f3666c1e"
+      "rendering_repair": {
+        "raw_summary_evidence_unchanged": true,
+        "script": "scripts/repair_manuscript_table_rendering.py",
+        "script_sha256": "eaa84cf11c676c75522fdd9c90dffe96a482be53fb28a2916943834c67a13196"
+      },
+      "sha256": "9a33862939f462199dd3bba956e6b1d6fa757cbd38ae9968f72dc0e4df929d8b"
     },
     "sequential_evalue": {
       "path": "tables/adequacy_operating_characteristic_sequential_evalue.tex",
-      "sha256": "04446c38ecf306bf64b932613d748ad78fc7de1160279a40dfdaf08321135694"
+      "rendering_repair": {
+        "raw_summary_evidence_unchanged": true,
+        "script": "scripts/repair_manuscript_table_rendering.py",
+        "script_sha256": "eaa84cf11c676c75522fdd9c90dffe96a482be53fb28a2916943834c67a13196"
+      },
+      "sha256": "d3b1e3afed30941806aad42903516ab6dae171ffc308621be2a21c745212dc50"
     }
   }
 }

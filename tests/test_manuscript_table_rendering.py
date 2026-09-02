@@ -29,6 +29,8 @@ def test_rendering_repairs_are_present_and_copies_match() -> None:
     names = [
         "operating_characteristics_design.tex",
         "operating_characteristics_outcomes.tex",
+        "adequacy_operating_characteristic_assignment_isolation.tex",
+        "adequacy_operating_characteristic_sequential_evalue.tex",
         "route_matched_null_comparison.tex",
         "v12_result_macros.tex",
         *WORKED_NAMES,
@@ -53,6 +55,8 @@ def test_rendering_repairs_are_present_and_copies_match() -> None:
     assert "B. Mutually exclusive decision outcomes" in outcomes
     assert outcomes.count(r"\resizebox{\linewidth}{!}{%") == 2
     assert r"\begin{tabular}{lrrrrrrrrllllll}" not in outcomes
+    assert "fwd.-only adequate" in outcomes
+    assert "simulation-level false-adequacy certificate" in outcomes
 
     route = (OUTPUT_TABLES / "route_matched_null_comparison.tex").read_text(
         encoding="utf-8"
@@ -61,6 +65,16 @@ def test_rendering_repairs_are_present_and_copies_match() -> None:
     assert r"\begin{tabular}{@{}llrrrrr@{}}" in route
     assert r"\begin{tabular}{@{}lrrp{0.42\textwidth}@{}}" in route
     assert r"\begin{tabular}{lrrrrrrr}" not in route
+    assert "Forward-only adequate" in route
+    assert "executable per-dataset outcome" in route
+
+    for name in [
+        "adequacy_operating_characteristic_assignment_isolation.tex",
+        "adequacy_operating_characteristic_sequential_evalue.tex",
+    ]:
+        adequacy = (OUTPUT_TABLES / name).read_text(encoding="utf-8")
+        assert "Route-specific false-adequacy operating characteristic" in adequacy
+        assert "Route-specific adequacy operating characteristic" not in adequacy
 
     macros = (OUTPUT_TABLES / "v12_result_macros.tex").read_text(
         encoding="utf-8"
@@ -70,6 +84,23 @@ def test_rendering_repairs_are_present_and_copies_match() -> None:
         r"\providecommand{\LevelIIAAnchorSelectionLimitedCountRate}{9/1200=0.008}"
         in macros
     )
+    expected_macros = {
+        "LevelIIAAnchorNonaffirmationCountRate": "127/1200=0.106",
+        "LevelIIAAdequacyFamilySize": "40",
+        "LevelIIAAdequacyGridDisplay": "5, 10, 15, 20, 30, 40, 50, 60, 75, 90",
+        "LevelIIAAssignmentIsolationCertifiedDeltaBothDirections": "15",
+        "LevelIIASequentialCertifiedDeltaBothDirections": "30",
+        "LevelIIASequentialNegativeTwentyFalseAdequacyRate": "0.318",
+        "LevelIIASequentialPositiveTwentyFalseAdequacyRate": "0.295",
+        "LevelIIASixtyFalseAdequacyCountRate": "0/1200=0.000",
+        "LevelIIASixtySimultaneousUpperDisplay": "0.0056",
+        "LevelIIACleanSequentialMinusAssignmentEstimate": "+0.101",
+        "LevelIIACleanSequentialMinusAssignmentInterval": "[+0.083, +0.119]",
+        "LevelIIAAdversarialSequentialMinusCleanSequentialEstimate": "+0.007",
+        "LevelIIAAdversarialSequentialMinusCleanSequentialInterval": "[-0.001, +0.015]",
+    }
+    for macro, value in expected_macros.items():
+        assert rf"\providecommand{{\{macro}}}{{{value}}}" in macros
 
 
 def test_worked_example_is_data_only_and_split() -> None:
@@ -125,6 +156,8 @@ def test_worked_example_is_data_only_and_split() -> None:
     assert r"\label{tab:si-worked-decision}" in decision
     assert r">{\raggedright\arraybackslash}X" in decision
     assert r"forward\_\allowbreak only\_\allowbreak adequate" in decision
+    assert "Forward-only-adequate indicator (raw field: null indicator)" in decision
+    assert "Null indicator & final outcome class" not in decision
     assert "p{3.9cm}p{3.0cm}p{3.0cm}p{3.0cm}" not in decision
     assert aggregate.count(r"\begin{table}[H]") == 3
 
@@ -192,3 +225,25 @@ def test_rendering_metadata_preserves_parent_identifiers() -> None:
     hashes = data["table_sha256"]
     for name in WORKED_NAMES:
         assert hashes[name] == _sha256(OUTPUT_TABLES / name)
+
+
+def test_adequacy_rendering_checksum_chain_matches_repaired_tables() -> None:
+    pointer_path = RUN_DIR / "metadata" / "adequacy_certification.json"
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    adequacy_id = pointer["adequacy_id"]
+    auxiliary_path = RUN_DIR / "auxiliary" / adequacy_id / "metadata.json"
+    auxiliary = json.loads(auxiliary_path.read_text(encoding="utf-8"))
+
+    for route in ("assignment_isolation", "sequential_evalue"):
+        canonical = RUN_DIR / pointer["tables"][route]["path"]
+        aux_table = RUN_DIR / "auxiliary" / adequacy_id / pointer["tables"][route]["path"]
+        manuscript = MANUSCRIPT_TABLES / canonical.name
+        expected = _sha256(canonical)
+        assert _sha256(aux_table) == expected
+        assert _sha256(manuscript) == expected
+        assert pointer["tables"][route]["sha256"] == expected
+        assert auxiliary["tables"][route]["sha256"] == expected
+        for metadata in (pointer, auxiliary):
+            repair = metadata["tables"][route]["rendering_repair"]
+            assert repair["script"] == "scripts/repair_manuscript_table_rendering.py"
+            assert repair["raw_summary_evidence_unchanged"] is True

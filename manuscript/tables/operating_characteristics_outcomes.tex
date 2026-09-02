@@ -2,7 +2,7 @@
 % Source: outputs/0cd4cac11153c546/summary/operating_characteristics.csv
 \begin{table}[t]
 \centering
-\caption{Diagnostic rates and mutually exclusive decision outcomes for the locked Level II-A pipeline on simulated data. Design constants and slope summaries are reported in Table~\ref{tab:si-oc-design}. Run hash \texttt{0cd4cac11153c546}; $M=1200$ Monte Carlo datasets per scenario. Panel~A reports diagnostic and qualification rates. Panel~B reports exact counts with rates in parentheses for the six mutually exclusive outcomes. The negative tail is the sole confirmatory level-$\alpha$ hypothesis; the positive tail is a prespecified diagnostic. Component disagreement is routed to the inconclusive class. $^{a}$The scalar selection gate is evaluated only for a resolved material departure; the displayed rate is conditional on applicability. Not human EEG.}
+\caption{Diagnostic rates and mutually exclusive decision outcomes for the locked Level II-A pipeline on simulated data. Design constants and slope summaries are reported in Table~\ref{tab:si-oc-design}. Run hash \texttt{0cd4cac11153c546}; $M=1200$ Monte Carlo datasets per scenario. Panel~A reports diagnostic and qualification rates. Panel~B reports exact counts with rates in parentheses for the six mutually exclusive per-dataset outcomes. The ``fwd.-only adequate'' column is the executable forward-only-adequate outcome and is distinct from the simulation-level false-adequacy certificate. The negative tail is the sole confirmatory level-$\alpha$ hypothesis; the positive tail is a prespecified diagnostic. Component disagreement is routed to the inconclusive class. $^{a}$The scalar selection gate is evaluated only for a resolved material departure; the displayed rate is conditional on applicability. Not human EEG.}
 \label{tab:si-oc-outcomes}
 \scriptsize
 \setlength{\tabcolsep}{3.5pt}
@@ -28,7 +28,7 @@ opposite\_direction & 0.000 & 0.000 & 0.000 & 0.001 & 0.001 & 1.000 & 0.006 & 0.
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}lrrrrrr@{}}
 \toprule
-Scenario & support & sel.-lim. & diag. fail & null & opp. diag. & inconcl. \\
+Scenario & support & sel.-lim. & diag. fail & fwd.-only adequate & opp. diag. & inconcl. \\
 \midrule
 clean\_null & 0/1200 (0.000) & 9/1200 (0.008) & 0/1200 (0.000) & 1073/1200 (0.894) & 0/1200 (0.000) & 118/1200 (0.098) \\
 injected\_residual & 1189/1200 (0.991) & 11/1200 (0.009) & 0/1200 (0.000) & 0/1200 (0.000) & 0/1200 (0.000) & 0/1200 (0.000) \\

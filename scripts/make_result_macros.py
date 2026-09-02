@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import sys
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 import pandas as pd
@@ -60,7 +61,19 @@ def _count_from_rate(row, rate_column: str) -> int:
     return int(round(int(row["M"]) * float(row[rate_column])))
 
 
-def _build_macros(run_hash: str, oc: pd.DataFrame, adequacy: pd.DataFrame) -> str:
+def _rate3_from_count(n: int, m: int) -> str:
+    rate = (Decimal(n) / Decimal(m)).quantize(
+        Decimal("0.001"), rounding=ROUND_HALF_UP
+    )
+    return f"{rate:.3f}"
+
+
+def _build_macros(
+    run_hash: str,
+    oc: pd.DataFrame,
+    adequacy: pd.DataFrame,
+    route_contrasts: pd.DataFrame | None = None,
+) -> str:
     indexed = oc.set_index("scenario")
     m_values = set(oc["M"].astype(int))
     if len(m_values) != 1:
@@ -84,15 +97,15 @@ def _build_macros(run_hash: str, oc: pd.DataFrame, adequacy: pd.DataFrame) -> st
         row = indexed.loc[scenario]
         for label, (n_column, rate_column) in OUTCOMES.items():
             n = int(row[n_column])
-            rate = float(row[rate_column])
+            rate_text = _rate3_from_count(n, m)
             lines.append(_macro(f"LevelIIA{prefix}{label}N", str(n)))
             lines.append(
-                _macro(f"LevelIIA{prefix}{label}Rate", f"{rate:.3f}")
+                _macro(f"LevelIIA{prefix}{label}Rate", rate_text)
             )
             lines.append(
                 _macro(
                     f"LevelIIA{prefix}{label}CountRate",
-                    f"{n}/{m}={rate:.3f}",
+                    f"{n}/{m}={rate_text}",
                 )
             )
 
@@ -103,6 +116,13 @@ def _build_macros(run_hash: str, oc: pd.DataFrame, adequacy: pd.DataFrame) -> st
                 str(nonaffirmation),
             )
         )
+        if scenario == "clean_null":
+            lines.append(
+                _macro(
+                    "LevelIIAAnchorNonaffirmationCountRate",
+                    f"{nonaffirmation}/{m}={_rate3_from_count(nonaffirmation, m)}",
+                )
+            )
         for label, column in [
             ("LeakFire", "leak_fire_rate"),
             ("RetentionFire", "retention_fire_rate"),
@@ -141,6 +161,12 @@ def _build_macros(run_hash: str, oc: pd.DataFrame, adequacy: pd.DataFrame) -> st
         _macro(
             "LevelIIAAdequacyGrid",
             ",".join(f"{x:g}" for x in grid),
+        )
+    )
+    lines.append(
+        _macro(
+            "LevelIIAAdequacyGridDisplay",
+            ", ".join(f"{x:g}" for x in grid),
         )
     )
 
@@ -189,6 +215,116 @@ def _build_macros(run_hash: str, oc: pd.DataFrame, adequacy: pd.DataFrame) -> st
                         f"{float(row['simultaneous_cp_upper']):.6f}",
                     )
                 )
+    # Route-level summary macros are emitted only after asserting that the
+    # negative- and positive-direction certificates agree. This prevents prose
+    # from silently claiming a common boundary after a future recertification in
+    # which the two directions diverge.
+    for route, route_name in route_prefix.items():
+        route_rows = adequacy[adequacy["route"] == route]
+        certified = {}
+        for direction in sorted(directions):
+            values = (
+                route_rows.loc[
+                    route_rows["direction"] == direction,
+                    "certified_delta_direction",
+                ]
+                .dropna()
+                .unique()
+            )
+            certified[direction] = None if len(values) == 0 else float(values[0])
+        if certified.get("negative") != certified.get("positive"):
+            raise ValueError(
+                f"{route}: directional certified deltas differ: {certified}"
+            )
+        common = certified.get("negative")
+        common_text = "not-certified" if common is None else f"{common:g}"
+        lines.append(
+            _macro(
+                f"LevelIIA{route_name}CertifiedDeltaBothDirections",
+                common_text,
+            )
+        )
+
+    # Manuscript-facing sequential 20-unit false-adequacy rates.
+    for direction, direction_name in direction_prefix.items():
+        row20 = adequacy[
+            (adequacy["route"] == "sequential_evalue")
+            & (adequacy["direction"] == direction)
+            & (adequacy["delta"] == 20.0)
+        ]
+        if len(row20) != 1:
+            raise ValueError(
+                f"expected one sequential 20-unit cell for {direction}"
+            )
+        row20 = row20.iloc[0]
+        lines.append(
+            _macro(
+                f"LevelIIASequential{direction_name}TwentyFalseAdequacyRate",
+                f"{float(row20['false_adequacy_rate']):.3f}",
+            )
+        )
+
+    # The displayed ±60 summary is a shared statement across both routes and
+    # directions. Emit it only after asserting equality of all four cells.
+    sixty = adequacy[adequacy["delta"] == 60.0]
+    if len(sixty) != 4:
+        raise ValueError("expected four route-by-direction cells at delta=60")
+    sixty_counts = set(sixty["false_adequacy_n"].astype(int))
+    sixty_m = set(sixty["M"].astype(int))
+    sixty_rates = {round(float(x), 12) for x in sixty["false_adequacy_rate"]}
+    sixty_upper = {round(float(x), 12) for x in sixty["simultaneous_cp_upper"]}
+    if not (
+        len(sixty_counts) == 1
+        and len(sixty_m) == 1
+        and len(sixty_rates) == 1
+        and len(sixty_upper) == 1
+    ):
+        raise ValueError("delta=60 cells do not share one manuscript summary")
+    sixty_n = next(iter(sixty_counts))
+    sixty_m_value = next(iter(sixty_m))
+    sixty_rate = next(iter(sixty_rates))
+    sixty_upper_value = next(iter(sixty_upper))
+    lines.append(
+        _macro(
+            "LevelIIASixtyFalseAdequacyCountRate",
+            f"{sixty_n}/{sixty_m_value}={sixty_rate:.3f}",
+        )
+    )
+    lines.append(
+        _macro(
+            "LevelIIASixtySimultaneousUpperDisplay",
+            f"{sixty_upper_value:.4f}",
+        )
+    )
+
+    # Route-matched contrasts are a separate frozen summary object. When present,
+    # expose their manuscript repetitions as macros rather than hand-typed prose.
+    if route_contrasts is not None:
+        expected = {
+            "clean_sequential_minus_clean_assignment":
+                "CleanSequentialMinusAssignment",
+            "adversarial_sequential_minus_clean_sequential":
+                "AdversarialSequentialMinusCleanSequential",
+        }
+        indexed_contrasts = route_contrasts.set_index("contrast_id")
+        missing = sorted(set(expected) - set(indexed_contrasts.index.astype(str)))
+        if missing:
+            raise ValueError(f"missing route-matched contrasts: {missing}")
+        for contrast_id, macro_prefix in expected.items():
+            row = indexed_contrasts.loc[contrast_id]
+            lines.append(
+                _macro(
+                    f"LevelIIA{macro_prefix}Estimate",
+                    f"{float(row['estimate']):+.3f}",
+                )
+            )
+            lines.append(
+                _macro(
+                    f"LevelIIA{macro_prefix}Interval",
+                    f"[{float(row['ci95_low']):+.3f}, {float(row['ci95_high']):+.3f}]",
+                )
+            )
+
     return "\n".join(lines) + "\n"
 
 
@@ -279,11 +415,27 @@ def main() -> None:
     adequacy = pd.read_csv(
         run_dir / "summary" / "adequacy_operating_characteristic.csv"
     )
+    route_contrasts_path = (
+        run_dir / "summary" / "route_matched_null_contrasts.csv"
+    )
+    route_contrasts = (
+        pd.read_csv(route_contrasts_path)
+        if route_contrasts_path.exists()
+        else None
+    )
     macro_path = run_dir / "tables" / "v12_result_macros.tex"
     interval_path = (
         run_dir / "tables" / "operating_characteristics_intervals.tex"
     )
-    _atomic(macro_path, _build_macros(args.run_hash, oc, adequacy))
+    _atomic(
+        macro_path,
+        _build_macros(
+            args.run_hash,
+            oc,
+            adequacy,
+            route_contrasts=route_contrasts,
+        ),
+    )
     _atomic(interval_path, _build_interval_table(args.run_hash, oc))
 
     if not args.no_copy:
