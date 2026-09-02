@@ -22,6 +22,8 @@ from typing import Iterable
 
 import pandas as pd
 
+from make_result_macros import _build_macros
+
 ROUTE_CELL_ORDER = [
     "clean_assignment_isolation",
     "clean_sequential_evalue",
@@ -44,6 +46,8 @@ SCENARIO_ORDER = [
 PARENT_TABLE_NAMES = [
     "operating_characteristics_design.tex",
     "operating_characteristics_outcomes.tex",
+    "adequacy_operating_characteristic_assignment_isolation.tex",
+    "adequacy_operating_characteristic_sequential_evalue.tex",
     "v12_result_macros.tex",
     "worked_decision_example.tex",
 ]
@@ -171,7 +175,10 @@ def render_outcomes_table(oc: pd.DataFrame, run_hash: str) -> str:
             f"Run hash \\texttt{{{run_hash}}}; $M={m}$ Monte Carlo datasets per "
             "scenario. Panel~A reports diagnostic and qualification rates. Panel~B "
             "reports exact counts with rates in parentheses for the six mutually "
-            "exclusive outcomes. The negative tail is the sole confirmatory "
+            "exclusive per-dataset outcomes. The ``fwd.-only adequate'' column is "
+            "the executable forward-only-adequate outcome and is distinct from "
+            "the simulation-level false-adequacy certificate. The negative tail "
+            "is the sole confirmatory "
             "level-$\\alpha$ hypothesis; the positive tail is a prespecified "
             "diagnostic. Component disagreement is routed to the inconclusive "
             "class. $^{a}$The scalar selection gate is evaluated only for a resolved "
@@ -220,7 +227,7 @@ def render_outcomes_table(oc: pd.DataFrame, run_hash: str) -> str:
             "\\begin{tabular}{@{}lrrrrrr@{}}",
             "\\toprule",
             (
-                "Scenario & support & sel.-lim. & diag. fail & null & opp. diag. "
+                "Scenario & support & sel.-lim. & diag. fail & fwd.-only adequate & opp. diag. "
                 "& inconcl. \\\\"
             ),
             "\\midrule",
@@ -272,7 +279,8 @@ def render_route_table(
             "comparison. The two clean rows use identical generated datasets "
             "replicate by replicate. The full adversarial carryover generator is "
             "evaluated only under the sequential e-value route because assignment "
-            "isolation requires endpoint-array invariance. Outcome cells report "
+            "isolation requires endpoint-array invariance. ``Forward-only adequate'' "
+            "denotes the executable per-dataset outcome. Outcome cells report "
             "counts and rates from \\(M=1200\\) datasets; support and "
             "opposite-direction counts were zero in all three cells. Contrast "
             "intervals use the locked paired or independent procedure appropriate "
@@ -285,7 +293,7 @@ def render_route_table(
         "\\begin{tabular}{@{}llrrrrr@{}}",
         "\\toprule",
         (
-            "Generator & Route & Adequate & Inconclusive & Selection-limited & "
+            "Generator & Route & Forward-only adequate & Inconclusive & Selection-limited & "
             "Diagnostic failure & Component disagreement \\\\"
         ),
         "\\midrule",
@@ -339,6 +347,22 @@ def render_route_table(
     return "\n".join(lines) + "\n"
 
 
+def repair_adequacy_caption(text: str, route_title: str) -> str:
+    old = (
+        "\\caption{Route-specific adequacy operating characteristic for the "
+        f"{route_title} route."
+    )
+    new = (
+        "\\caption{Route-specific false-adequacy operating characteristic for the "
+        f"{route_title} route."
+    )
+    if old in text:
+        return text.replace(old, new, 1)
+    if new not in text:
+        raise ValueError(f"unrecognized adequacy caption for {route_title}")
+    return text
+
+
 def repair_worked_table(text: str, run_hash: str) -> str:
     if f"Frozen run hash: {run_hash}." not in text:
         raise ValueError("worked-example run-hash provenance mismatch")
@@ -374,6 +398,16 @@ def repair_worked_table(text: str, run_hash: str) -> str:
         text = text.replace(old_row, new_row, 1)
     elif new_row not in text:
         raise ValueError("unrecognized worked-example decision row")
+
+    old_null_indicator = "Null indicator & final outcome class &"
+    new_null_indicator = (
+        "Forward-only-adequate indicator (raw field: null indicator) & "
+        "final outcome class &"
+    )
+    if old_null_indicator in text:
+        text = text.replace(old_null_indicator, new_null_indicator, 1)
+    elif new_null_indicator not in text:
+        raise ValueError("unrecognized worked-example null-indicator row")
     return text
 
 
@@ -458,6 +492,56 @@ def _write_checksum_manifest_rows(
         writer.writerows(rows)
 
     tmp.replace(manifest_path)
+
+
+def update_adequacy_metadata_chain(
+    root: Path,
+    run_dir: Path,
+    table_paths: dict[str, Path],
+) -> list[Path]:
+    pointer_path = run_dir / "metadata" / "adequacy_certification.json"
+    if not pointer_path.exists():
+        raise FileNotFoundError(pointer_path)
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    adequacy_id = str(pointer["adequacy_id"])
+    if pointer.get("parent_run_hash") != run_dir.name:
+        raise ValueError("adequacy pointer parent-run mismatch")
+    aux_metadata_path = run_dir / "auxiliary" / adequacy_id / "metadata.json"
+    auxiliary = json.loads(aux_metadata_path.read_text(encoding="utf-8"))
+    if auxiliary.get("adequacy_id") != adequacy_id:
+        raise ValueError("auxiliary adequacy metadata mismatch")
+    if auxiliary.get("parent_run_hash") != run_dir.name:
+        raise ValueError("auxiliary adequacy parent-run mismatch")
+
+    script_hash = sha256(Path(__file__).resolve())
+    affected: list[Path] = []
+    for route, canonical in table_paths.items():
+        if route not in pointer.get("tables", {}) or route not in auxiliary.get("tables", {}):
+            raise ValueError(f"adequacy metadata missing table route {route}")
+        aux_table = run_dir / "auxiliary" / adequacy_id / pointer["tables"][route]["path"]
+        atomic_write_text(aux_table, canonical.read_text(encoding="utf-8"))
+        digest = sha256(canonical)
+        if sha256(aux_table) != digest:
+            raise RuntimeError(f"adequacy canonical/auxiliary table mismatch: {route}")
+        for metadata in (pointer, auxiliary):
+            metadata["tables"][route]["sha256"] = digest
+            metadata["tables"][route]["rendering_repair"] = {
+                "script": "scripts/repair_manuscript_table_rendering.py",
+                "script_sha256": script_hash,
+                "raw_summary_evidence_unchanged": True,
+            }
+        affected.append(aux_table)
+
+    atomic_write_text(
+        pointer_path,
+        json.dumps(pointer, indent=2, sort_keys=True) + "\n",
+    )
+    atomic_write_text(
+        aux_metadata_path,
+        json.dumps(auxiliary, indent=2, sort_keys=True) + "\n",
+    )
+    affected.extend([pointer_path, aux_metadata_path])
+    return affected
 
 
 def update_route_metadata(
@@ -562,6 +646,17 @@ def repair_run_tables(
     oc = pd.read_csv(oc_path)
     if oc["scenario"].tolist() != SCENARIO_ORDER:
         raise ValueError("unexpected canonical scenario order")
+    adequacy = pd.read_csv(
+        run_dir / "summary" / "adequacy_operating_characteristic.csv"
+    )
+    route_contrasts_path = (
+        run_dir / "summary" / "route_matched_null_contrasts.csv"
+    )
+    route_contrasts = (
+        pd.read_csv(route_contrasts_path)
+        if route_contrasts_path.exists()
+        else None
+    )
 
     output_tables = run_dir / "tables"
     manuscript_tables = root / "manuscript" / "tables"
@@ -569,6 +664,12 @@ def repair_run_tables(
 
     design_path = output_tables / "operating_characteristics_design.tex"
     outcomes_path = output_tables / "operating_characteristics_outcomes.tex"
+    adequacy_assignment_path = (
+        output_tables / "adequacy_operating_characteristic_assignment_isolation.tex"
+    )
+    adequacy_sequential_path = (
+        output_tables / "adequacy_operating_characteristic_sequential_evalue.tex"
+    )
     macros_path = output_tables / "v12_result_macros.tex"
     worked_path = output_tables / "worked_decision_example.tex"
 
@@ -578,8 +679,35 @@ def repair_run_tables(
     )
     atomic_write_text(outcomes_path, render_outcomes_table(oc, run_hash))
     atomic_write_text(
+        adequacy_assignment_path,
+        repair_adequacy_caption(
+            adequacy_assignment_path.read_text(encoding="utf-8"),
+            "assignment-isolation",
+        ),
+    )
+    atomic_write_text(
+        adequacy_sequential_path,
+        repair_adequacy_caption(
+            adequacy_sequential_path.read_text(encoding="utf-8"),
+            "sequential e-value",
+        ),
+    )
+    adequacy_metadata_targets = update_adequacy_metadata_chain(
+        root,
+        run_dir,
+        {
+            "assignment_isolation": adequacy_assignment_path,
+            "sequential_evalue": adequacy_sequential_path,
+        },
+    )
+    atomic_write_text(
         macros_path,
-        repair_result_macros(macros_path.read_text(encoding="utf-8"), oc, run_hash),
+        _build_macros(
+            run_hash,
+            oc,
+            adequacy,
+            route_contrasts=route_contrasts,
+        ),
     )
     atomic_write_text(
         worked_path,
@@ -682,6 +810,7 @@ def repair_run_tables(
 
     manifest_path = run_dir / "metadata" / "certified-output-checksums.csv"
     manifest_targets = [output_tables / name for name in PARENT_TABLE_NAMES]
+    manifest_targets.extend(adequacy_metadata_targets)
     manifest_targets.append(metadata_path)
     update_checksum_manifest(manifest_path, root, manifest_targets)
 

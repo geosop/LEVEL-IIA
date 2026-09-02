@@ -38,14 +38,18 @@ The canonical outputs are stored under
 `outputs/0cd4cac11153c546/`. Smoke and exploratory runs are development
 checks only and must not be cited as certified results.
 
-The route-specific adequacy certification evaluates both departure directions
-over the declared magnitude grid. Under its simultaneous familywise
+The route-specific false-adequacy certification evaluates both departure
+directions over the declared magnitude grid. Under its simultaneous familywise
 upper-bound rule, false-adequacy control is certified from
 `|Delta| = 15` for
 `assignment_isolation` and from
 `|Delta| = 30` for
-`sequential_evalue`. These are route-specific resolution boundaries for an
-affirmative adequacy classification. They are not directional-power claims.
+`sequential_evalue`. These are route-specific false-adequacy resolution
+boundaries for the complete classifier. A per-dataset `forward_only_adequate`
+outcome receives a bounded affirmative-null interpretation only within the
+route- and direction-specific magnitude range qualified by this separate
+simulation-level certificate. These boundaries are not directional-power
+claims.
 
 The certified full-run design is:
 
@@ -73,7 +77,7 @@ outputs/0cd4cac11153c546/summary/adequacy_operating_characteristic.csv
 
 The scenario-level checks in `false_adequacy_rates.csv` retain the
 registered Wilson 95% upper confidence bound for the designated
-material-departure scenarios. The route-general adequacy certificate in
+material-departure scenarios. The route-general false-adequacy certificate in
 `adequacy_operating_characteristic.csv` is separate: pointwise Wilson intervals
 are descriptive, while certification uses the one-sided,
 Bonferroni-adjusted Clopper-Pearson simultaneous upper-bound envelope across
@@ -246,27 +250,28 @@ python scripts\verify_adequacy_operating_characteristic.py --run-hash $RunHash
 python scripts\verify_route_matched_null_comparison.py --run-hash $RunHash
 ```
 
-Regenerate benchmark tables, figures and the worked example from that run:
+Refresh only the manuscript-facing presentation artefacts from the frozen
+certified run:
 
 ```powershell
-python scripts\make_figure2.py --run-hash $RunHash
-python scripts\make_split_oc_tables.py --run-hash $RunHash
-python scripts\make_tables.py --run-hash $RunHash
-python scripts\make_worked_example.py --run-hash $RunHash
+$Py = (Resolve-Path .\.venv312\Scripts\python.exe).Path
+& $Py scripts\export_manuscript_tables.py --run-hash $RunHash
+& $Py scripts\make_figure2.py --run-hash $RunHash
 ```
 
-Export the complete certified manuscript-facing table set from the locked run
-and validity-matched route experiment:
+This is the safe rendering-only path for the committed certified run. It reads
+the existing certified outputs, applies reader-facing terminology/rendering
+repairs, updates rendering/checksum metadata, and refreshes the manuscript-facing
+table and synthetic-validation figure copies. It does not run `run_all.py`,
+regenerate raw or summary artefacts, rerun the adequacy Monte Carlo family, or
+create a new run hash. The legacy internal script/file identifiers
+`make_figure2.py` and `figure2_validation.pdf` are retained for provenance; the
+current manuscript may number this artwork differently.
 
-```powershell
-python scripts\export_manuscript_tables.py --run-hash $RunHash --experiment-id route_match_1be69ec6cd081a58
-```
-
-This command reads the existing certified outputs and refreshes only the
-manuscript-facing table copies and their rendering/checksum metadata. It does
-not run Monte Carlo generation, regenerate raw or summary artefacts, or create
-a new run hash. In the committed release state, repeating the command is
-byte-idempotent and leaves the working tree clean.
+The direct `make_tables.py`, `make_split_oc_tables.py` and
+`make_worked_example.py` generators remain appropriate for a fresh independent
+reproduction in a separate output root. They are not the rendering-only refresh
+path for the committed certified directory.
 
 Run unit tests:
 
@@ -308,7 +313,7 @@ Second, it checks operating-characteristic qualification thresholds:
   and its Wilson 95% upper confidence bound to be at or below
   `p_FA_max = 0.05`.
 
-The separate route-general adequacy certificate is verified by
+The separate route-general false-adequacy certificate is verified by
 `scripts/verify_adequacy_operating_characteristic.py`. That verifier checks the
 one-sided, Bonferroni-adjusted Clopper-Pearson simultaneous upper-bound
 envelope across the complete declared route-by-direction-by-magnitude family
@@ -325,7 +330,7 @@ release checking.
 ## Seed and run-hash policy
 
 * **Deterministic seeds.** Each scenario has a `base_seed`; Monte Carlo replicate `i` uses seed `base_seed * 1_000_000 + i`.
-* **Replicate reproducibility.** Re-running a replicate reproduces it exactly, which is also how Figure 2 panels and the SI worked example are rebuilt.
+* **Replicate reproducibility.** Re-running a replicate reproduces it exactly, which is also how the synthetic-validation figure panels and the SI worked example are rebuilt. The legacy internal generator/file identifiers `make_figure2.py` and `figure2_validation.pdf` are retained for provenance.
 * **Run hash.** `metadata.compute_run_hash` is a SHA-256 digest, truncated to the first 16 hex characters, over the resolved configuration bundle, package version, seed family and deterministic executable-source fingerprint. The same configurations and hashed source map to the same hash; changing either the configuration bundle or fingerprinted source changes the hash.
 * **No overwrite by default.** `run_all.py` writes to a deterministic `<outdir>/<run_hash>/` directory. Repeating the same configuration, seed family and package version targets the same directory and is refused by default. Changed configurations produce changed hashes. Use `--outdir` for independent reproduction, `--resume` for incomplete runs, and `--overwrite` only for deliberate clean regeneration.
 * **Latest run pointer.** `<outdir>/LATEST_RUN.txt` records the hash of the most recent completed all-scenario `run_all.py` execution within that output root, including smoke runs. The certified benchmark run is always identified explicitly by the committed hash in `manuscript/certified_run_counts.json`.
@@ -363,8 +368,9 @@ file and the frozen per-replicate rows.
 
 ## Certified auxiliary artefacts
 
-The route-specific adequacy certification is
-`adequacy_498657101acbb4e6`. The validity-matched inference-route comparison is
+The route-specific false-adequacy certification is
+`adequacy_498657101acbb4e6` (legacy internal identifier retained for
+provenance). The validity-matched inference-route comparison is
 `route_match_1be69ec6cd081a58`. Both are parented to certified benchmark run
 `0cd4cac11153c546`.
 
@@ -415,7 +421,7 @@ python scripts/run_all.py --all --outdir outputs_reproduced
 To verify the certified benchmark package included in this repository, read the
 committed hash from `manuscript/certified_run_counts.json` and run all three
 verification commands shown above. Those commands verify the seven-scenario
-parent run, the route-specific adequacy certification and the validity-matched
+parent run, the route-specific false-adequacy certification and the validity-matched
 inference-route comparison.
 
 If a new full run is generated for a later manuscript revision, update the manuscript, SI, figure captions, tables, data accessibility statement and release notes to point to the new run hash.
@@ -424,15 +430,16 @@ If a new full run is generated for a later manuscript revision, update the manus
 
 Release `v1.2.1` preserves the certified benchmark run
 `0cd4cac11153c546` and all certified raw Monte Carlo rows, summary outputs,
-scenario counts, route-specific adequacy certification and validity-matched
+scenario counts, route-specific false-adequacy certification and validity-matched
 route comparison from `v1.2.0`. No Monte Carlo benchmark was rerun.
 
-The release corrects a Figure 2 rendering-level provenance inconsistency:
-the displayed `beta_min` in each representative panel is now taken from the
-same representative replicate decision object as the displayed slope estimate
-and confidence bound, rather than from the corresponding scenario-level
-median. The underlying representative decisions and scientific conclusions
-are unchanged.
+The release corrects a synthetic-validation-figure rendering-level provenance
+inconsistency (the legacy internal generator/file identifiers are
+`make_figure2.py` and `figure2_validation.pdf`): the displayed `beta_min` in
+each representative panel is now taken from the same representative replicate
+decision object as the displayed slope estimate and confidence bound, rather
+than from the corresponding scenario-level median. The underlying
+representative decisions and scientific conclusions are unchanged.
 
 The protected raw/summary evidence set remained byte-identical across the
 repair: 74 files with SHA-256
@@ -459,8 +466,9 @@ Zenodo DOI is
 [`10.5281/zenodo.21887583`](https://doi.org/10.5281/zenodo.21887583).
 
 - **Certified benchmark run:** `0cd4cac11153c546`
-- **Original generating source fingerprint:** `e45455e359646c4784b1d7b847ef44dd8f3499fd`
-- **Route-specific adequacy certification:** `adequacy_498657101acbb4e6`
+- **Original generating Git commit:** `e45455e359646c4784b1d7b847ef44dd8f3499fd`
+- **Certified executable-source fingerprint:** `eaaa9e902dcf425021843e60d03e205a460117d96c49d30e11c82fc047369b60`
+- **Route-specific false-adequacy certification:** `adequacy_498657101acbb4e6`
 - **Validity-matched route comparison:** `route_match_1be69ec6cd081a58`
 
 For exact reproduction of benchmark numerical results, use the certified run
@@ -476,9 +484,9 @@ maintained separately.
 
 The numbers reported are operating characteristics of a software pipeline on simulated data. They establish that the locked decision procedure behaves as designed under the declared synthetic generators. They are not empirical evidence about human EEG and not a mechanism claim.
 
-## Route-specific adequacy certification
+## Route-specific false-adequacy certification
 
-The affirmative-adequacy certificate is magnitude-indexed and route-specific.
+The false-adequacy certificate is magnitude-indexed and route-specific.
 The committed certification `adequacy_498657101acbb4e6` is parented to
 benchmark run `0cd4cac11153c546` and evaluates both departure directions over
 the declared magnitude grid. The evaluated absolute magnitudes were

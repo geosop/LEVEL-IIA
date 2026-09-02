@@ -8,15 +8,17 @@
   "route_experiment_id": "route_match_1be69ec6cd081a58",
   "schema_version": 1,
   "script": "scripts/repair_manuscript_table_rendering.py",
-  "script_sha256": "5cad0c5fa5158d187c189f32e3afa78c3faee5f7d7687b63468527848ac3a470",
+  "script_sha256": "eaa84cf11c676c75522fdd9c90dffe96a482be53fb28a2916943834c67a13196",
   "table_sha256": {
+    "adequacy_operating_characteristic_assignment_isolation.tex": "9a33862939f462199dd3bba956e6b1d6fa757cbd38ae9968f72dc0e4df929d8b",
+    "adequacy_operating_characteristic_sequential_evalue.tex": "d3b1e3afed30941806aad42903516ab6dae171ffc308621be2a21c745212dc50",
     "operating_characteristics_design.tex": "28bfaba47a29ffb0e3303735ed6ed958badec195b0055a94fda838c9d6b16f8e",
-    "operating_characteristics_outcomes.tex": "58761ac501b764a118a9ec2234fcbb1770be97e492f3aa8efc5b2b253b591895",
-    "route_matched_null_comparison.tex": "6ca2460bc75f3c2b7b680dcfd820fcd81d4b881eff11ecb2d6cc81153f2abdcd",
-    "v12_result_macros.tex": "5ef5bd8a06d67a52adef239368318771ef733b8a91e0828784df0313ab2cd4cb",
-    "worked_decision_example.tex": "a6e21490df82a09beb36485fa1ad8661bea1a35ec46cc1c107c6c933e07cd7cb",
+    "operating_characteristics_outcomes.tex": "826b14e1815be775f63b1007e0d2131461852be74dee39f49b6c0c411275b237",
+    "route_matched_null_comparison.tex": "1a551648015f7fad25186f043699f2737454993f2ea5b4426eb275419cdb46b9",
+    "v12_result_macros.tex": "b60e933fbc2a9dafee2ca18a8086c0660b19debf6de8c3eb9f4c3288239970f2",
+    "worked_decision_example.tex": "0b05cf1aec033e63788596ffc7683eec40ac8cb10fb422c47877d45b3c3d9d71",
     "worked_decision_example_bins.tex": "96a21554b4fbd440b98a2df7a649bbe1fd70134175d5993805b6109f73e117c1",
-    "worked_decision_example_decision.tex": "176b31df37b310345267241ea6e231180a7cb16f433fcc1b0d090beab0765d3e",
+    "worked_decision_example_decision.tex": "d613fe92f6e5028620eb47021409aab098d891a7f671488565823dd4cc684dc4",
     "worked_decision_example_slopes.tex": "5cc8b38c7687a77f2750900413bc9a60a0b2eb2cc6b6ded264923555a2d931cc",
     "worked_decision_example_values.tex": "c62e2af752a4db41683d1947e7effce16878622b1afed414016f08327ac64956"
   },
@@ -26,6 +28,6 @@
     "reason": "separate frozen data artefacts from manuscript-owned interpretation",
     "schema_version": 1,
     "script": "scripts/split_worked_example_rendering.py",
-    "script_sha256": "3aa0e0c4810f3480b674fdcfb5ded58c768493149c15532fb6541f3d3645b5e6"
+    "script_sha256": "304e6314baf6e716d09a938401cfc1c92ef1c90426d88e814116e039f7d132f3"
   }
 }

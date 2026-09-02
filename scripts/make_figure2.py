@@ -38,6 +38,13 @@ sys.path.insert(0, str(ROOT / "src"))
 from cri_leveliia import comparator, dgp  # noqa: E402
 from cri_leveliia.formatting import count_rate_display_4  # noqa: E402
 from cri_leveliia.benchmarks import _replicate_seed, pipeline_once  # noqa: E402
+from repair_manuscript_table_rendering import (  # noqa: E402
+    atomic_write_text,
+    protected_evidence_paths,
+    sha256,
+    stable_tree_digest,
+    update_checksum_manifest,
+)
 
 
 BLUE = "#2c6fbb"
@@ -52,7 +59,7 @@ PANELS = [
         "scenario": "clean_null",
         "title": "(a)  Forward-only null",
         "banner": "Forward-only adequate",
-        "chips": r"slope --      $\rightarrow$  null",
+        "chips": r"slope --      $\rightarrow$  FWD-ONLY ADEQUATE",
         "note": "residual carries no\nassigned-delay slope",
         "color": BLUE,
         "rate_kind": "null",
@@ -200,7 +207,7 @@ def _rate_text(panel: dict, summary: dict) -> str:
         return (
             "false-support rate\n"
             + _count_rate(summary, "support_n", "support_rate")
-            + "\nnull "
+            + "\nfwd-only adequate\n"
             + _count_rate(summary, "null_n", "null_rate")
         )
 
@@ -208,7 +215,7 @@ def _rate_text(panel: dict, summary: dict) -> str:
         return (
             "support\n"
             + _count_rate(summary, "support_n", "support_rate")
-            + "\nnull "
+            + "\nfwd-only adequate\n"
             + _count_rate(summary, "null_n", "null_rate")
         )
 
@@ -493,6 +500,64 @@ def make_figure(
     return out_pdf
 
 
+def _update_rendering_provenance(
+    run_dir: Path,
+    run_hash: str,
+    out_pdf: Path,
+    out_png: Path,
+    evidence_digest: str,
+    evidence_count: int,
+    representative_index: dict,
+) -> None:
+    metadata_path = run_dir / "metadata" / "figure2_rendering.json"
+    existing = {}
+    if metadata_path.exists():
+        existing = _load_json(metadata_path)
+        if existing.get("parent_run_hash") not in {None, run_hash}:
+            raise ValueError("figure rendering parent-run mismatch")
+
+    metadata = {
+        "schema_version": 1,
+        "kind": existing.get(
+            "kind", "figure2_decision_object_rendering_repair"
+        ),
+        "parent_run_hash": run_hash,
+        "script": "scripts/make_figure2.py",
+        "script_sha256": sha256(Path(__file__).resolve()),
+        "protected_evidence_file_count": evidence_count,
+        "protected_evidence_sha256": evidence_digest,
+        "raw_and_summary_evidence_digest_verified": True,
+        "reason": existing.get(
+            "reason",
+            "Rendering-only regeneration from the frozen representative "
+            "decision objects; no Monte Carlo evidence is regenerated.",
+        ),
+        "repair_git_parent": existing.get("repair_git_parent"),
+        "representatives": {
+            panel["fname"]: {
+                "base_seed": int(representative_index[panel["fname"]]["base_seed"]),
+                "replicate": int(representative_index[panel["fname"]]["replicate"]),
+            }
+            for panel in PANELS
+        },
+        "figure_sha256": {
+            "pdf": sha256(out_pdf),
+            "png": sha256(out_png),
+        },
+    }
+    atomic_write_text(
+        metadata_path,
+        json.dumps(metadata, indent=2, sort_keys=True) + "\n",
+    )
+
+    manifest_path = run_dir / "metadata" / "certified-output-checksums.csv"
+    update_checksum_manifest(
+        manifest_path,
+        ROOT,
+        [out_pdf, out_png, metadata_path],
+    )
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-hash", required=True)
@@ -503,6 +568,9 @@ def main() -> None:
     run_dir = Path(args.outdir) / args.run_hash
     if not run_dir.exists():
         raise FileNotFoundError(f"run directory not found: {run_dir}")
+
+    protected = protected_evidence_paths(run_dir)
+    evidence_before, evidence_count = stable_tree_digest(ROOT, protected)
 
     representative_index = _load_json(run_dir / "summary" / "representative_index.json")
 
@@ -518,6 +586,20 @@ def main() -> None:
     make_figure(PANELS, summaries_by_scenario, representative_index, args.run_hash, out_pdf)
 
     out_png = Path(str(out_pdf).replace(".pdf", ".png"))
+
+    evidence_after, evidence_count_after = stable_tree_digest(ROOT, protected)
+    if evidence_count_after != evidence_count or evidence_after != evidence_before:
+        raise RuntimeError("protected raw/summary evidence changed during figure rendering")
+    _update_rendering_provenance(
+        run_dir,
+        args.run_hash,
+        out_pdf,
+        out_png,
+        evidence_before,
+        evidence_count,
+        representative_index,
+    )
+
     print(f"[make_figure2] wrote {out_pdf}")
     if not args.no_copy:
         man = ROOT / "manuscript" / "figures"

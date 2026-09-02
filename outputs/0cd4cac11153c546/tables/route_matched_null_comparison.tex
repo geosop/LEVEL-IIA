@@ -2,14 +2,14 @@
 % parent run=0cd4cac11153c546; experiment_id=route_match_1be69ec6cd081a58
 \begin{table}[t]
 \centering
-\caption{Validity-matched null-generator and inference-route comparison. The two clean rows use identical generated datasets replicate by replicate. The full adversarial carryover generator is evaluated only under the sequential e-value route because assignment isolation requires endpoint-array invariance. Outcome cells report counts and rates from \(M=1200\) datasets; support and opposite-direction counts were zero in all three cells. Contrast intervals use the locked paired or independent procedure appropriate to each comparison.}
+\caption{Validity-matched null-generator and inference-route comparison. The two clean rows use identical generated datasets replicate by replicate. The full adversarial carryover generator is evaluated only under the sequential e-value route because assignment isolation requires endpoint-array invariance. ``Forward-only adequate'' denotes the executable per-dataset outcome. Outcome cells report counts and rates from \(M=1200\) datasets; support and opposite-direction counts were zero in all three cells. Contrast intervals use the locked paired or independent procedure appropriate to each comparison.}
 \label{tab:si-route-matched-null-comparison}
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{}llrrrrr@{}}
 \toprule
-Generator & Route & Adequate & Inconclusive & Selection-limited & Diagnostic failure & Component disagreement \\
+Generator & Route & Forward-only adequate & Inconclusive & Selection-limited & Diagnostic failure & Component disagreement \\
 \midrule
 Clean & assignment isolation & 1064/1200 (0.887) & 126/1200 (0.105) & 10/1200 (0.008) & 0/1200 (0.000) & 128/1200 (0.107) \\
 Clean & sequential e-value & 1185/1200 (0.988) & 5/1200 (0.004) & 10/1200 (0.008) & 0/1200 (0.000) & 5/1200 (0.004) \\
