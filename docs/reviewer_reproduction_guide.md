@@ -20,11 +20,19 @@ use, not byte-level certification checks.
 
 ## 2. One-minute sanity check
 
-```bash
-python scripts/run_all.py --smoke
-python scripts/verify_outputs.py --smoke
-pytest -q
+Use the repository-local Git-ignored smoke output root so the working tree stays
+clean for provenance-sensitive auxiliary experiments:
+
+```powershell
+& $Py scripts\run_all.py --smoke --outdir outputs_repair_smoke
+& $Py scripts\verify_outputs.py --smoke --outdir outputs_repair_smoke
+& $Py -m pytest -q
 ```
+
+A completed all-scenario run, including `--smoke`, writes `LATEST_RUN.txt`
+inside the selected output root. The committed `.gitignore` excludes
+`outputs_repair_smoke/`, so this sanity check does not change the tracked
+`outputs/LATEST_RUN.txt` or add reproduction outputs to Git status.
 
 `verify_outputs.py` checks false-support control, recovery power, audit blocking,
 the collider scope test, component-disagreement routing, participant-estimability
@@ -33,32 +41,36 @@ rates under material endpoint-level departures. It exits non-zero on failure.
 
 ## 3. Full independent benchmark reproduction
 
-Run a full reproduction in a separate output root so the committed certified
-run directory remains untouched:
+Use the repository-local Git-ignored `outputs_candidate/` root. The PowerShell
+block resolves it to an absolute path because current rendering/provenance
+helpers compare generated paths with the absolute repository root. This leaves
+the committed certified run and Git working tree untouched:
 
 ```powershell
-& $Py scripts\run_all.py --all --outdir outputs_reproduced
-$RunHash = (Get-Content outputs_reproduced\LATEST_RUN.txt).Trim()
+$FullOut = Join-Path (Resolve-Path .).Path "outputs_candidate"
+
+& $Py scripts\run_all.py --all --outdir $FullOut
+$RunHash = (Get-Content (Join-Path $FullOut "LATEST_RUN.txt")).Trim()
 
 & $Py scripts\make_figure2.py `
   --run-hash $RunHash `
-  --outdir outputs_reproduced `
+  --outdir $FullOut `
   --no-copy
 & $Py scripts\make_tables.py `
   --run-hash $RunHash `
-  --outdir outputs_reproduced `
+  --outdir $FullOut `
   --no-copy
 & $Py scripts\verify_outputs.py `
   --run-hash $RunHash `
-  --outdir outputs_reproduced
+  --outdir $FullOut
 & $Py scripts\make_worked_example.py `
   --run-hash $RunHash `
-  --outdir outputs_reproduced
+  --outdir $FullOut
 ```
 
-This reproduction path may regenerate derived artefacts inside
-`outputs_reproduced`; it does not modify the committed certified directory under
-`outputs/`.
+The committed `.gitignore` excludes `outputs_candidate/`. Derived artefacts may
+therefore be regenerated there without modifying `outputs/` or making the Git
+working tree dirty.
 
 ## Certified manuscript run
 
@@ -104,6 +116,16 @@ outputs/<certified-run-hash>/summary/false_adequacy_rates.csv
   `configs/collider_selection.yaml`) so that the manufactured slope is material;
   this is the configuration that isolates the endpoint-by-delay interaction
   diagnostic as the operative guard. All other scenarios use kappa = 2.
+* The route-matched auxiliary generator is provenance-sensitive and must start
+  from a clean Git working tree. In the current release, a manifest supplied via
+  `--manifest` must resolve under the repository root; the committed
+  `configs/route_matched_null_comparison.yaml` is the supported default. A
+  portability rerun of the same benchmark specification retains the same parent
+  run hash even when the realised Python, NumPy, operating system or architecture
+  differs. If a genuinely different parent run hash requires a modified manifest,
+  place that manifest in a Git-ignored repository-local path such as
+  `outputs_candidate/route_matched_reproduction.yaml` so the clean-tree
+  precondition is preserved.
 
 ### False-adequacy operating-characteristic certification
 

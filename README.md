@@ -200,6 +200,15 @@ difference. The larger
 cross-route ordering in the original scenario rows is not interpreted as a
 generator effect, and the route-matched result is not an equivalence claim.
 
+For independent regeneration of this auxiliary experiment, start from a clean
+Git working tree. In the current release, a manifest supplied via `--manifest`
+must resolve under the repository root; the committed
+`configs/route_matched_null_comparison.yaml` is the supported default. If a
+genuinely different parent run hash requires a modified manifest, place it in a
+Git-ignored repository-local path such as
+`outputs_candidate/route_matched_reproduction.yaml` so that the clean-tree
+precondition is preserved.
+
 ## Install
 
 ```bash
@@ -216,29 +225,32 @@ pip install -e .
 
 ## Run
 
-Fast smoke run:
+Fast smoke run. Use the repository-local Git-ignored smoke root so the Git
+working tree stays clean:
 
 ```bash
-python scripts/run_all.py --smoke
-python scripts/verify_outputs.py --smoke
+python scripts/run_all.py --smoke --outdir outputs_repair_smoke
+python scripts/verify_outputs.py --smoke --outdir outputs_repair_smoke
 ```
 
-Full benchmark run in a separate reproduction directory:
+Full benchmark run in the repository-local Git-ignored reproduction root:
 
 ```bash
-python scripts/run_all.py --all --outdir outputs_reproduced
+python scripts/run_all.py --all --outdir outputs_candidate
 ```
 
 The repository already contains the certified benchmark run. Re-running the same
 configuration targets the same deterministic run hash and is refused by default
 to protect the frozen output directory. Use `--resume` only for an incomplete
 run directory, or `--overwrite` only when intentionally regenerating a run from
-scratch.
+scratch. The committed `.gitignore` excludes both `outputs_repair_smoke/` and
+`outputs_candidate/`, preserving Git cleanliness without moving reproduction
+artefacts outside the repository root.
 
-Resume an interrupted reproduction run in that same separate directory:
+Resume an interrupted reproduction run in that same reproduction root:
 
 ```bash
-python scripts/run_all.py --all --outdir outputs_reproduced --resume
+python scripts/run_all.py --all --outdir outputs_candidate --resume
 ```
 
 Verify the certified benchmark and both auxiliary certifications:
@@ -406,16 +418,16 @@ docs/reviewer_reproduction_guide.md
 The shortest reviewer path is:
 
 ```bash
-python scripts/run_all.py --smoke
-python scripts/verify_outputs.py --smoke
+python scripts/run_all.py --smoke --outdir outputs_repair_smoke
+python scripts/verify_outputs.py --smoke --outdir outputs_repair_smoke
 pytest -q
 ```
 
 To rerun the full manuscript benchmark without touching the locked manuscript
-output directory, run:
+output directory or dirtying the Git working tree, run:
 
 ```bash
-python scripts/run_all.py --all --outdir outputs_reproduced
+python scripts/run_all.py --all --outdir outputs_candidate
 ```
 
 To verify the certified benchmark package included in this repository, read the
@@ -516,6 +528,7 @@ Verify the route-matched comparison without regenerating it:
 python scripts\verify_route_matched_null_comparison.py --run-hash $RunHash
 ```
 
-Independent benchmark reproduction should use a separate output root such as
-`outputs_reproduced`. Certified directories are protected from accidental
-overwrite.
+Independent benchmark reproduction should use the repository-local Git-ignored
+root `outputs_candidate/`. Certified directories are protected from accidental
+overwrite. For derived rendering and provenance commands, use the absolute
+repository-local output path shown in `docs/reviewer_reproduction_guide.md`.
